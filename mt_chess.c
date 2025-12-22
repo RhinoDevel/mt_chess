@@ -66,7 +66,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     // 0000000000111111111122222222223333333333444444444455
     // 0123456789012345678901234567890123456789012345678901
     //   -------------------------------------------------\n    0
-    // 8 | b_r | b_k | b_b | b_q | b_K | b_b | b_k | b_r |\n    1  1/2 = 0; 8 - 0 = 8
+    // 8 | b_r | b_n | b_b | b_q | b_k | b_b | b_n | b_r |\n    1  1/2 = 0; 8 - 0 = 8
     //   -------------------------------------------------\n    2 
     // 7 | b_p | b_p | b_p | b_p | b_p | b_p | b_p | b_p |\n    3  3/2 = 1; 8 - 1 = 7
     //   -------------------------------------------------\n    4
@@ -80,7 +80,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     //   -------------------------------------------------\n   12
     // 2 | w_p | w_p | w_p | w_p | w_p | w_p | w_p | w_p |\n   13 13/2 = 6; 8 - 6 = 2
     //   ------------------------------------------------|\n   14 
-    // 1 | w_r | w_k | w_b | w_q | w_K | w_b | w_k | w_r |\n   15 15/2 = 7; 8 - 7 = 1
+    // 1 | w_r | w_n | w_b | w_q | w_k | w_b | w_n | w_r |\n   15 15/2 = 7; 8 - 7 = 1
     //   ------------------------------------------------|\n   16
     //   |  a  |  b  |  c  |  d  |  e  |  f  |  g  |  h  |\n\0 17
     
@@ -212,14 +212,14 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
                         if(s_data->pieces[piece_index].color
                             == mt_chess_color_black)
                         {
-                            ret_val[col_offset + 1] = 'b';
+                            ret_val[col_offset + 1] = 'b'; // Black piece.
                         }
                         else
                         {
                             assert(s_data->pieces[piece_index].color
                                 == mt_chess_color_white);
                             
-                            ret_val[col_offset + 1] = 'w';
+                            ret_val[col_offset + 1] = 'w'; // White piece.
                         }
                         
                         ret_val[col_offset + 2] = '_';
@@ -228,39 +228,39 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
                         {
                             case mt_chess_type_king:
                             {
-                                ret_val[col_offset + 3] = 'K';
+                                ret_val[col_offset + 3] = 'k'; // King
                                 break;
                             }
                             case mt_chess_type_pawn:
                             {
-                                ret_val[col_offset + 3] = 'p';
+                                ret_val[col_offset + 3] = 'p'; // Pawn
                                 break;
                             }
                             case mt_chess_type_knight:
                             {
-                                ret_val[col_offset + 3] = 'k';
+                                ret_val[col_offset + 3] = 'n'; // Knight
                                 break;
                             }
                             case mt_chess_type_bishop:
                             {
-                                ret_val[col_offset + 3] = 'b';
+                                ret_val[col_offset + 3] = 'b'; // Bishop
                                 break;
                             }
                             case mt_chess_type_rook:
                             {
-                                ret_val[col_offset + 3] = 'r';
+                                ret_val[col_offset + 3] = 'r'; // Rook
                                 break;
                             }
                             case mt_chess_type_queen:
                             {
-                                ret_val[col_offset + 3] = 'q';
+                                ret_val[col_offset + 3] = 'q'; // Queen
                                 break;
                             }
                             
                             default:
                             {
                                 assert(false);
-                                ret_val[col_offset + 3] = '?';
+                                ret_val[col_offset + 3] = '?'; // Error!
                                 break;
                             }
                         }

@@ -25,10 +25,10 @@ static void print_board()
     mt_chess_free(board_str);
 }
 
-static bool read_pos(char * const file, char * const rank)
+static bool read_pos(char * const out_file, char * const out_rank)
 {
-    assert(file != NULL);
-    assert(rank != NULL);
+    assert(out_file != NULL);
+    assert(out_rank != NULL);
     
     char pos[2 + 1 + 1];
     
@@ -57,12 +57,10 @@ static bool read_pos(char * const file, char * const rank)
     
     assert(pos[3] == '\0');
     
-    *file = pos[0];
-    *rank = pos[1];
+    *out_file = pos[0];
+    *out_rank = pos[1];
     return true;
 }
-
-
 
 int main(void)
 {
@@ -70,12 +68,14 @@ int main(void)
     
     do
     {
-        print_board();
-        
         char from_file = '\0';
         char from_rank = '\0';
         char to_file = '\0';
         char to_rank = '\0';
+     
+        char const * msg = NULL;
+        
+        print_board();
         
         do
         {
@@ -98,6 +98,14 @@ int main(void)
             printf("=> To   file = %c, rank = %c.\n", to_file, to_rank);
             break;
         }while(true);
+        
+        if(!mt_chess_move(from_file, from_rank, to_file, to_rank, &msg))
+        {
+            assert(msg != NULL);
+            printf("Move failed: \"%s\"\n", msg);
+            continue;
+        }
+        printf("Move succeeded.\n");
     }while(false); // TODO: Change into endless loop when ready.
     
     mt_chess_deinit();

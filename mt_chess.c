@@ -293,3 +293,34 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     
     return ret_val;
 }
+
+MT_EXPORT_CHESS_API bool __stdcall mt_chess_move(
+    char const from_file, char const from_rank,
+    char const to_file, char const to_rank,
+    char const * * const out_msg)
+{
+    assert(out_msg != NULL);
+    
+    struct mt_chess_pos const from = mt_chess_pos_get(from_file, from_rank);
+    
+    if(mt_chess_pos_is_invalid(&from))
+    {
+        assert(false); // Should have already been handled by caller.
+        *out_msg = "The given from-position is invalid.";
+        return false;
+    }
+    
+    struct mt_chess_pos const to = mt_chess_pos_get(to_file, to_rank);
+    
+    if(mt_chess_pos_is_invalid(&to))
+    {
+        assert(false); // Should have already been handled by caller.
+        *out_msg = "The given to-position is invalid.";
+        return false;
+    }
+    
+    // TODO: Implement!
+    //
+    *out_msg = "Not implemented!";
+    return false;
+}

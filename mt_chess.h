@@ -18,9 +18,9 @@
 #endif //_WIN32
 
 #ifdef __cplusplus
-    //#include <cstdint>
+    #include <cstdbool>
 #else //__cplusplus
-    //#include <stdint.h>
+    #include <stdbool.h>
 #endif //__cplusplus
 
 #ifdef __cplusplus
@@ -37,6 +37,11 @@ MT_EXPORT_CHESS_API void __stdcall mt_chess_reinit(void);
  * - Free return value with mt_chess_free() later.
  */
 MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void);
+
+MT_EXPORT_CHESS_API bool __stdcall mt_chess_move(
+    char const from_file, char const from_rank,
+    char const to_file, char const to_rank,
+    char const * * const out_msg);
 
 #ifdef __cplusplus
 }

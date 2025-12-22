@@ -13,7 +13,7 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_pos.h"
 
-struct mt_chess_move
+struct mt_chess_move // TODO: Castling needs to be supported, should be a single "move" with two pieces!
 {
     // Must be a deep-copy, because of possible pawn promotion after this move.
     struct mt_chess_piece piece;

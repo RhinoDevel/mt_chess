@@ -82,7 +82,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     //   ------------------------------------------------|\n   14 
     // 1 | w_r | w_n | w_b | w_q | w_k | w_b | w_n | w_r |\n   15 15/2 = 7; 8 - 7 = 1
     //   ------------------------------------------------|\n   16
-    //   |  a  |  b  |  c  |  d  |  e  |  f  |  g  |  h  |\n\0 17
+    //      a     b     c     d     e     f     g     h   \n\0 17
     
     static int const rows = 18;
     static int const columns = 51 + 1; // Incl. newlines.
@@ -125,7 +125,12 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
                     ret_val[col_offset] = (char)((int)'a' + buf / 6);
                     continue;
                 }
-                ret_val[col_offset] = ' ';
+                if(col + 1 < columns)
+                {
+                    ret_val[col_offset] = ' ';
+                    continue;
+                }
+                ret_val[col_offset] = '\n';
                 continue;
             }
             

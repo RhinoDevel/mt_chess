@@ -294,7 +294,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     return ret_val;
 }
 
-MT_EXPORT_CHESS_API bool __stdcall mt_chess_move(
+MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     char const from_file, char const from_rank,
     char const to_file, char const to_rank,
     char const * * const out_msg)
@@ -320,7 +320,6 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_move(
     }
     
     // TODO: Implement!
-    //
     *out_msg = "Not implemented!";
     return false;
 }

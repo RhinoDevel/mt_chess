@@ -38,7 +38,10 @@ MT_EXPORT_CHESS_API void __stdcall mt_chess_reinit(void);
  */
 MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void);
 
-MT_EXPORT_CHESS_API bool __stdcall mt_chess_move(
+/**
+ * - Caller does NOT take ownership of eventually set output message.
+ */
+MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     char const from_file, char const from_rank,
     char const to_file, char const to_rank,
     char const * * const out_msg);

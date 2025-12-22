@@ -99,7 +99,7 @@ int main(void)
             break;
         }while(true);
         
-        if(!mt_chess_move(from_file, from_rank, to_file, to_rank, &msg))
+        if(!mt_chess_try_move(from_file, from_rank, to_file, to_rank, &msg))
         {
             assert(msg != NULL);
             printf("Move failed: \"%s\"\n", msg);

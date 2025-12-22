@@ -53,4 +53,6 @@ struct mt_chess_pos mt_chess_pos_get(char const file, char const rank)
     ret_val.row =
         (uint8_t)((enum mt_chess_row)((int)mt_chess_row_1 - (int)(rank - '1')));
     assert(0 <= ret_val.row && ret_val.row <= 7);
+    
+    return ret_val;
 }

@@ -6,8 +6,10 @@
 
 #ifdef __cplusplus
     #include <cstdint>
+    #include <cstdbool>
 #else //__cplusplus
     #include <stdint.h>
+    #include <stdbool.h>
 #endif //__cplusplus
 
 struct mt_chess_pos
@@ -17,5 +19,9 @@ struct mt_chess_pos
 };
 
 void mt_chess_pos_invalidate(struct mt_chess_pos * const pos);
+
+bool mt_chess_pos_is_invalid(struct mt_chess_pos const * const pos);
+
+struct mt_chess_pos mt_chess_pos_get(char const file, char const rank);
 
 #endif //MT_CHESS_POS

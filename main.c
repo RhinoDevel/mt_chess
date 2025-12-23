@@ -106,7 +106,7 @@ int main(void)
             continue;
         }
         printf("Move succeeded.\n");
-    }while(false); // TODO: Change into endless loop when ready.
+    }while(true);
     
     mt_chess_deinit();
     return 0;

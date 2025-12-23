@@ -28,8 +28,21 @@ void mt_chess_pos_invalidate(struct mt_chess_pos * const pos)
 
 bool mt_chess_pos_is_invalid(struct mt_chess_pos const * const pos)
 {
+    assert(pos != NULL);
     assert((pos->col == s_invalid_col) == (pos->row == s_invalid_row));
-    return pos->col == s_invalid_col || pos->row == s_invalid_row;
+    
+    return (uint8_t)mt_chess_col_h < pos->col
+        || (uint8_t)mt_chess_row_1 < pos->row;
+    //return pos->col == s_invalid_col || pos->row == s_invalid_row;
+}
+
+bool mt_chess_pos_are_equal(
+    struct mt_chess_pos const * const a, struct mt_chess_pos const * const b)
+{
+    assert(a != NULL);
+    assert(b != NULL);
+    
+    return a->col == b->col && a->row == b->row;
 }
 
 struct mt_chess_pos mt_chess_pos_get(char const file, char const rank)

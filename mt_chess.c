@@ -50,11 +50,28 @@ static bool is_move_allowed(
     
     int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
     assert(0 <= to_board_index && to_board_index < 8 * 8);
-    
-    if(s_data->board[to_board_index] != 0) // TODO: Must be modified, later!
+
+
+    int const to_piece_id = s_data->board[to_board_index];
+    if(to_piece_id != 0)
     {
-        *out_msg = "The destination square is not empty.";
-        return false;
+        // There is a(-nother) piece on the destination square.
+
+        int const to_piece_index = mt_chess_piece_get_index(
+                s_data->pieces, to_piece_id);
+        struct mt_chess_piece const * const to_piece =
+            s_data->pieces + to_piece_index;
+
+        if(to_piece->color == s_data->turn)
+        {
+            *out_msg = "There is another piece belonging to the current player on the destination square.";
+            return false;
+        }
+
+        // Opponent's piece on the destination square.
+
+        // Must have been avoided earlier on.
+        assert(to_piece->type != mt_chess_type_king);
     }
     
     assert(*out_msg == NULL);
@@ -384,7 +401,8 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
         return false;
     }
     
-    // Move: // TODO: Needs to be extended, later.
+    // TODO: Actually move both pieces during castling.
+    // TODO: Actually remove other piece "on passant".
     
     s_data->board[piece_board_index] = 0;
     

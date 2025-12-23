@@ -17,9 +17,45 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
+#include "mt_chess_col.h"
 #include "mt_chess.h"
 
 static struct mt_chess_data * s_data = NULL;
+
+static bool is_move_allowed(
+    struct mt_chess_piece const * const piece,
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(piece != NULL && piece->id != 0);
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+    
+    *out_msg = NULL;
+    
+    if(mt_chess_pos_are_equal(from, to))
+    {
+        //assert(false); // The UI should prevent getting here?
+        *out_msg = "The given from- and to-positions are equal.";
+        return false;
+    }
+    
+    //s_data // TODO: Add check, if piece's color corresponds with the current player!
+    
+    int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
+    assert(0 <= to_board_index && to_board_index < 8 * 8);
+    
+    if(s_data->board[to_board_index] != 0) // TODO: Must be modified, later!
+    {
+        *out_msg = "The destination square is not empty.";
+        return false;
+    }
+    
+    assert(*out_msg == NULL);
+    return true;
+}
 
 MT_EXPORT_CHESS_API void __stdcall mt_chess_free(void * const ptr)
 {
@@ -300,6 +336,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     char const * * const out_msg)
 {
     assert(out_msg != NULL);
+    *out_msg = NULL;
     
     struct mt_chess_pos const from = mt_chess_pos_get(from_file, from_rank);
     
@@ -319,7 +356,41 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
         return false;
     }
     
-    // TODO: Implement!
-    *out_msg = "Not implemented!";
-    return false;
+    int const piece_board_index =
+            ((int)mt_chess_col_h + 1) * from.row + from.col;
+    assert(0 <= piece_board_index && piece_board_index < 8 * 8);
+    uint8_t const piece_id = s_data->board[piece_board_index];
+    
+    if(piece_id == 0)
+    {
+        *out_msg = "There is no piece at from-position.";
+        return false;
+    }
+
+    int const piece_index = mt_chess_piece_get_index(s_data->pieces, piece_id);
+    
+    assert(0 <= piece_index);
+    
+    struct mt_chess_piece const * const piece = s_data->pieces + piece_index;
+    assert(piece->id == piece_id);
+    
+    if(!is_move_allowed(piece, &from, &to, out_msg))
+    {
+        assert(*out_msg != NULL);
+        return false;
+    }
+    
+    // Move: // TODO: Needs to be extended, later.
+    
+    s_data->board[piece_board_index] = 0;
+    
+    int const to_board_index = ((int)mt_chess_col_h + 1) * to.row + to.col;
+    assert(0 <= to_board_index && to_board_index < 8 * 8);
+    
+    s_data->board[to_board_index] = piece->id;
+    
+    // TODO: Implement logging!
+    
+    assert(*out_msg == NULL);
+    return true;
 }

@@ -35,14 +35,18 @@ static bool is_move_allowed(
     
     *out_msg = NULL;
     
+    if(piece->color != s_data->turn)
+    {
+        *out_msg = "It is the other player's turn.";
+        return false;
+    }
+
     if(mt_chess_pos_are_equal(from, to))
     {
         //assert(false); // The UI should prevent getting here?
         *out_msg = "The given from- and to-positions are equal.";
         return false;
     }
-    
-    //s_data // TODO: Add check, if piece's color corresponds with the current player!
     
     int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
     assert(0 <= to_board_index && to_board_index < 8 * 8);
@@ -391,6 +395,8 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     
     // TODO: Implement logging!
     
+    s_data->turn = (enum mt_chess_color)(1 - (int)s_data->turn);
+
     assert(*out_msg == NULL);
     return true;
 }

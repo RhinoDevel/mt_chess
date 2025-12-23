@@ -14,6 +14,7 @@
 #include "mt_chess_log_node.h"
 #include "mt_chess_row.h"
 #include "mt_chess_col.h"
+#include "mt_chess_color.h"
 
 struct mt_chess_data
 {
@@ -22,6 +23,8 @@ struct mt_chess_data
     // Holds mt_chess_piece.id values or 0 (= empty).
     uint8_t board[((int)mt_chess_row_1 + 1) * ((int)mt_chess_col_h + 1)];
     
+    enum mt_chess_color turn;
+
     struct mt_chess_log_node * log;
 };
 

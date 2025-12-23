@@ -189,6 +189,7 @@ struct mt_chess_data * mt_chess_data_create()
     
     mt_chess_piece_init(ret_val->pieces);
     init_board(ret_val->pieces, ret_val->board);
+    ret_val->turn = mt_chess_color_white;
     ret_val->log = NULL;
     
     return ret_val;

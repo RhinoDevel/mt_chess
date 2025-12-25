@@ -77,6 +77,8 @@ static bool is_move_allowed(
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
     assert(out_msg != NULL);
     
+    struct mt_chess_piece const * to_piece = NULL;
+
     *out_msg = NULL;
     
     if(piece->color != s_data->turn)
@@ -95,17 +97,16 @@ static bool is_move_allowed(
     int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
     assert(0 <= to_board_index && to_board_index < 8 * 8);
 
-
     int const to_piece_id = s_data->board[to_board_index];
+
     if(to_piece_id != 0)
     {
         // There is a(-nother) piece on the destination square.
 
         int const to_piece_index = mt_chess_piece_get_index(
                 s_data->pieces, to_piece_id);
-        struct mt_chess_piece const * const to_piece =
-            s_data->pieces + to_piece_index;
-
+        
+        to_piece = s_data->pieces + to_piece_index;
         if(to_piece->color == s_data->turn)
         {
             *out_msg = "There is another piece belonging to the current player on the destination square.";
@@ -118,6 +119,101 @@ static bool is_move_allowed(
         assert(to_piece->type != mt_chess_type_king);
     }
     
+    switch(piece->type)
+    {
+        case mt_chess_type_king:
+        {
+            // TODO: Implement!
+            break;
+        }
+        case mt_chess_type_pawn:
+        {
+            // White has negative direction, because of rank order (8 to 1).
+            int const vert_dir = piece->color == mt_chess_color_white ? -1 : 1;
+
+            int const vert_dist = vert_dir * (to->row - from->row);
+
+            int const horiz_dist = abs((int)to->col - (int)from->col);
+
+            if(vert_dist == 0)
+            {
+                // (must have already been verified that the positions are not
+                // equal)
+                assert(0 < horiz_dist);
+
+                *out_msg = "Pawns cannot move to the sides.";
+                return false;
+            }
+            if(vert_dist < 0)
+            {
+                *out_msg = "Pawns cannot move backwards.";
+                return false;
+            }
+            if(2 < vert_dist)
+            {
+                *out_msg = "Pawns can move at most two squares forward.";
+                return false;
+            }
+
+            if(vert_dist != 1)
+            {
+                assert(vert_dist == 2); // Checked above.
+
+                enum mt_chess_row const first_row =
+                    piece->color == mt_chess_color_white
+                        ? mt_chess_row_2 : mt_chess_row_7;
+
+                if(from->row != first_row)
+                {
+                    *out_msg = "Pawns can move two forward squares at once for their first move, only.";
+                    return false;
+                }
+            }
+
+            if(1 < horiz_dist)
+            {
+                *out_msg = "A pawn can move at most one square forward and to the side at once.";
+                return false;
+            }
+            if(horiz_dist == 1)
+            {
+                if(to_piece_id == 0) // TODO: Too simple! Implement support for "en passant" rule!
+                {
+                    *out_msg = "A pawn can move diagonally only, if there is an opponent's piece to capture.";
+                    return false;
+                }
+            }
+            break;
+        }
+        case mt_chess_type_knight:
+        {
+            // TODO: Implement!
+            break;
+        }
+        case mt_chess_type_bishop:
+        {
+            // TODO: Implement!
+            break;
+        }
+        case mt_chess_type_rook:
+        {
+            // TODO: Implement!
+            break;
+        }
+        case mt_chess_type_queen:
+        {
+            // TODO: Implement!
+            break;
+        }
+
+        default:
+        {
+            assert(false); // Must not get here.
+            *out_msg = "Error: Unsupported piece type!";
+            return false;
+        }
+    }
+
     assert(*out_msg == NULL);
     return true;
 }

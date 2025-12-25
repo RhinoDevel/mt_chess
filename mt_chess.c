@@ -6,11 +6,13 @@
     #include <cassert>
     #include <cstdbool>
     #include <cstdlib>
+    #include <cstdio>
 #else //__cplusplus
     #include <stdint.h>
     #include <assert.h>
     #include <stdbool.h>
     #include <stdlib.h>
+    #include <stdio.h>
 #endif //__cplusplus
 
 #include "mt_chess_data.h"
@@ -19,6 +21,39 @@
 #include "mt_chess_type.h"
 #include "mt_chess_col.h"
 #include "mt_chess.h"
+
+// TODO: These control codes are NOT compatible with (e.g.) Windows:
+//
+static char const s_cc_color_fg[] =
+    "\e[30m";
+static char const s_cc_color_bg[][5 + 1] = {
+    "\e[47m", // mt_chess_color_white
+    "\e[45m" // mt_chess_color_black
+};
+static size_t const s_cc_color_len = sizeof s_cc_color_fg;
+
+static char const s_cc_reset[] = "\e[0m";
+static size_t const s_cc_reset_len = sizeof s_cc_reset;
+
+static char const unicode_piece[2][6][4] = {
+    { // mt_chess_color_white
+        "\u2654", // mt_chess_type_king
+        "\u2659", // mt_chess_type_pawn
+        "\u2658", // mt_chess_type_knight
+        "\u2657", // mt_chess_type_bishop
+        "\u2656", // mt_chess_type_rook
+        "\u2655" // mt_chess_type_queen
+    },
+    { // mt_chess_color_black
+        "\u265A", // mt_chess_type_king
+        "\u265F", // mt_chess_type_pawn
+        "\u265E", // mt_chess_type_knight
+        "\u265D", // mt_chess_type_bishop
+        "\u265C", // mt_chess_type_rook
+        "\u265B" // mt_chess_type_queen
+    }
+};
+static size_t const s_unicode_len = sizeof unicode_piece[0][0];
 
 static struct mt_chess_data * s_data = NULL;
 
@@ -78,39 +113,187 @@ static bool is_move_allowed(
     return true;
 }
 
-MT_EXPORT_CHESS_API void __stdcall mt_chess_free(void * const ptr)
+/**
+ * - Does not set the foreground color.
+ */
+static int str_unicode_add_square(
+    enum mt_chess_color const square_color,
+    struct mt_chess_piece const * const piece, // May be NULL.
+    char * const dest)
 {
-    if(ptr == NULL)
+    assert(
+        square_color == mt_chess_color_white
+            || square_color == mt_chess_color_black);
+    assert(piece == NULL || piece->id != 0);
+    assert(dest != NULL);
+
+    int ret_val = 0;
+
+    // Add control code to set the square's color:
+    snprintf(dest + ret_val, s_cc_color_len, s_cc_color_bg[(int)square_color]);
+    ret_val += s_cc_color_len - 1;
+
+    // Add first character of square:
+    if(piece == NULL)
     {
-        assert(false); // Although no problem, here.
-        return;
+        dest[ret_val] = ' ';
+        ++ret_val;
     }
-    free(ptr);
+    else
+    {
+        snprintf(
+            dest + ret_val,
+            s_unicode_len,
+            unicode_piece[piece->color][piece->type]);
+        ret_val += s_unicode_len - 1;
+    }
+
+    // Add second character of the square:
+    dest[ret_val] = ' ';
+    ++ret_val;
+
+    return ret_val;
 }
 
-MT_EXPORT_CHESS_API void __stdcall mt_chess_deinit(void)
+static int str_unicode_add_rank(int const rank, char * const dest)
 {
+    assert(8 >= rank && rank >= 1);
+    assert(dest != NULL);
+    assert(s_data != NULL);
+
+    int ret_val = 0;
+
+    // Rank:
+    dest[ret_val] = (char)((int)'0' + rank);
+    ++ret_val;
+
+    // Space:
+    dest[ret_val] = ' ';
+    ++ret_val;
+
+    // Add foreground color control code:
+    snprintf(dest + ret_val, s_cc_color_len, s_cc_color_fg);
+    ret_val += s_cc_color_len - 1;
+
+    enum mt_chess_color const first_square_color =
+            rank % 2 == 0 ? mt_chess_color_white : mt_chess_color_black;
+
+    assert(1 - mt_chess_color_white == mt_chess_color_black);
+    assert(mt_chess_color_white == 1 - mt_chess_color_black);
+
+    int const row = 7 - rank + 1;
+    int const row_offset = row * ((int)mt_chess_col_h + 1);
+
+    for(int col = 0; col < 8; ++col)
+    {
+        enum mt_chess_color const square_color =
+            col % 2 == 0 ? first_square_color : (1 - first_square_color);
+
+        int const board_index = row_offset + col;
+        assert(board_index < 8 * 8);
+        int const piece_id = s_data->board[board_index];
+        int piece_index = -1;
+        struct mt_chess_piece const * piece = NULL;
+
+        if(piece_id != 0)
+        {
+            int const piece_index = mt_chess_piece_get_index(
+                s_data->pieces, piece_id);
+
+            assert(0 <= piece_index && piece_index < 2 * 2 * 8);
+
+            piece = s_data->pieces + piece_index;
+        }
+
+        // Add the actual square:
+        ret_val += str_unicode_add_square(square_color, piece, dest + ret_val);
+    }
+    
+    // Add reset control code:
+    snprintf(dest + ret_val, s_cc_reset_len, s_cc_reset);
+    ret_val += s_cc_reset_len - 1;
+
+    // Newline:
+    dest[ret_val] = '\n';
+    ++ret_val;
+
+    return ret_val;
+}
+
+static char* create_board_as_str_unicode(void)
+{
+    int char_pos = 0;
+
     if(s_data == NULL)
     {
-        assert(false); // Although no problem.
-        return;
+        // Not initialized, yet.
+        assert(false);
+        return NULL;
     }
-    mt_chess_data_free(s_data);
-    s_data = NULL;
-}
 
-MT_EXPORT_CHESS_API void __stdcall mt_chess_reinit(void)
-{
-    if(s_data != NULL)
+    // 000000000011111111 1 1
+    // 012345678901234567 8 9
+    // 8 __##__##__##__##\n
+    // 7 ##__##__##__##__\n
+    // 6 __##__##__##__##\n
+    // 5 ##__##__##__##__\n
+    // 4 __##__##__##__##\n
+    // 3 ##__##__##__##__\n
+    // 2 __##__##__##__##\n
+    // 1 ##__##__##__##__\n
+    //   a b c d e f g h \n\0
+    int const max_chars = // Hard-coded [e.g. see str_unicode_add_square()].
+        8 * ( // Rows (ranks) of the board (8, 7, 6, 5, 4, 3, 2 and 1).
+                1 + 1 // Row number and space.
+                    + s_cc_color_len - 1 // Forground color control code.
+                    + 8 * ( // The squares of the row.
+                            s_cc_color_len - 1 // Background color control code.
+                            
+                            // This allows a piece on ALL squares at once, which
+                            // is probably never needed (in chess):
+                            + s_unicode_len - 1 // As if there is a piece.
+
+                            + 1 // Second (always empty) square character.
+                        )
+                    + s_cc_reset_len - 1 // Reset control code per row.
+                    + 1 // Trailing newline per row.
+            )
+            + (18 + 1) // Bottom row (showing a, b, c, d, e, f, g and h).
+            + 1; // Trailing zero-terminator.
+    char * const ret_val = (char*)malloc((size_t)max_chars * sizeof *ret_val);
+
+    assert(ret_val != NULL);
+
+    // Ranks (rows of the actual board):
+    for(int rank = 8; 1 <= rank; --rank)
     {
-        mt_chess_deinit();
+        char_pos += str_unicode_add_rank(rank, ret_val + char_pos);
     }
-    assert(s_data == NULL);
-    s_data = mt_chess_data_create();
-    assert(s_data != NULL);
+
+    // Last row (with file "titles"):
+    ret_val[char_pos] = ' ';
+    ++char_pos;
+    ret_val[char_pos] = ' ';
+    ++char_pos;
+    for(int i = 0; i < 8; ++i)
+    {
+        ret_val[char_pos] = (char)((int)'a' + i);
+        ++char_pos;
+        ret_val[char_pos] = ' ';
+        ++char_pos;
+    }
+    ret_val[char_pos] = '\n';
+    ++char_pos;
+
+    // Null-termination:
+    ret_val[char_pos] = '\0';
+    ++char_pos;
+
+    assert(char_pos <= max_chars);
+    return ret_val;
 }
 
-MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
+static char* create_board_as_str_ascii(void)
 {
     if(s_data == NULL)
     {
@@ -118,8 +301,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
         assert(false);
         return NULL;
     }
-    
-    //                                 
+                                  
     // 0000000000111111111122222222223333333333444444444455
     // 0123456789012345678901234567890123456789012345678901
     //   -------------------------------------------------\n    0
@@ -349,6 +531,48 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void)
     ret_val[chars - 1] = '\0';
     
     return ret_val;
+}
+
+MT_EXPORT_CHESS_API void __stdcall mt_chess_free(void * const ptr)
+{
+    if(ptr == NULL)
+    {
+        assert(false); // Although no problem, here.
+        return;
+    }
+    free(ptr);
+}
+
+MT_EXPORT_CHESS_API void __stdcall mt_chess_deinit(void)
+{
+    if(s_data == NULL)
+    {
+        assert(false); // Although no problem.
+        return;
+    }
+    mt_chess_data_free(s_data);
+    s_data = NULL;
+}
+
+MT_EXPORT_CHESS_API void __stdcall mt_chess_reinit(void)
+{
+    if(s_data != NULL)
+    {
+        mt_chess_deinit();
+    }
+    assert(s_data == NULL);
+    s_data = mt_chess_data_create();
+    assert(s_data != NULL);
+}
+
+MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_board_as_str(
+    bool const unicode)
+{
+    if(unicode)
+    {
+        return create_board_as_str_unicode();
+    }
+    return create_board_as_str_ascii();
 }
 
 MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(

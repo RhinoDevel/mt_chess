@@ -18,7 +18,7 @@
  */
 static void print_board()
 {
-    char * const board_str = mt_chess_get_board_as_str();
+    char * const board_str = mt_chess_create_board_as_str(true);
     
     printf("%s", board_str);
     
@@ -105,6 +105,7 @@ int main(void)
             printf("Move failed: \"%s\"\n", msg);
             continue;
         }
+        assert(msg == NULL);
         printf("Move succeeded.\n");
     }while(true);
     

@@ -36,7 +36,8 @@ MT_EXPORT_CHESS_API void __stdcall mt_chess_reinit(void);
  * - Caller takes ownership of return value.
  * - Free return value with mt_chess_free() later.
  */
-MT_EXPORT_CHESS_API char* __stdcall mt_chess_get_board_as_str(void);
+MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_board_as_str(
+	bool const unicode);
 
 /**
  * - Caller does NOT take ownership of eventually set output message.

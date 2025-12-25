@@ -24,11 +24,20 @@
 
 // TODO: These control codes are NOT compatible with (e.g.) Windows:
 //
+#define MT_CC_COLOR_BG_BLACK "\e[40m"
+#define MT_CC_COLOR_BG_RED "\e[41m"
+#define MT_CC_COLOR_BG_GREEN "\e[42m"
+#define MT_CC_COLOR_BG_YELLOW "\e[43m"
+#define MT_CC_COLOR_BG_BLUE "\e[44m"
+#define MT_CC_COLOR_BG_MAGENTA "\e[45m"
+#define MT_CC_COLOR_BG_CYAN "\e[46m"
+#define MT_CC_COLOR_BG_WHITE "\e[47m"
+//
 static char const s_cc_color_fg[] =
     "\e[30m";
 static char const s_cc_color_bg[][5 + 1] = {
     "\e[47m", // mt_chess_color_white
-    "\e[45m" // mt_chess_color_black
+    MT_CC_COLOR_BG_MAGENTA // mt_chess_color_black
 };
 static size_t const s_cc_color_len = sizeof s_cc_color_fg;
 

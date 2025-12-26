@@ -21,6 +21,7 @@
 #include "mt_chess_type.h"
 #include "mt_chess_col.h"
 #include "mt_chess.h"
+#include "mt_chess_log_node.h"
 
 // TODO: These control codes are NOT compatible with (e.g.) Windows:
 //
@@ -199,9 +200,40 @@ static bool is_move_allowed(
                 }
                 // There is no (opponent's) piece at the destination square.
 
-                // TODO: "En passant" check: Check last move in log!
+                struct mt_chess_log_node const * const latest =
+                    mt_chess_log_node_get_latest(s_data->log);
 
-                break; // Seems to be an OK move.    
+                if(latest == NULL)
+                {
+                    *out_msg = "A pawn cannot move one square diagonally as initial move.";
+                    return false;
+                }
+                // There was at least one preceding move.
+                assert(latest->move.piece.color != s_data->turn);
+                if(latest->move.piece.type != mt_chess_type_pawn)
+                {
+                    *out_msg = "A pawn can at most move one square diagonally after an opponent's pawn's move.";
+                    return false;
+                }
+                // The last move was a pawn's move.
+
+                if(to->col == latest->move.to/*from*/.col
+                    && ( // Turn-color must be white:
+                        (from->row == mt_chess_row_5
+                        && to->row == mt_chess_row_6
+                        && latest->move.from.row == mt_chess_row_7
+                        && latest->move.to.row == mt_chess_row_5)
+                        // Turn color must be black:
+                        || (from->row == mt_chess_row_4
+                            && to->row == mt_chess_row_3
+                            && latest->move.from.row == mt_chess_row_2
+                            && latest->move.to.row == mt_chess_row_4)))
+                {
+                    // "En passant" detected.
+                    break; // Seems to be an OK move. 
+                }
+                *out_msg = "Not an \"en passant\" move.";
+                return false;
             }
             // Pawn moves 1 square forward straight.
             assert(horiz_dist == 0);
@@ -764,8 +796,33 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     
     s_data->board[to_board_index] = piece->id;
     
-    // TODO: Implement logging!
-    
+    // Log:
+    //
+    {
+        struct mt_chess_log_node * const node = mt_chess_log_node_create();
+
+        node->move.from = from;
+        node->move.to = to;
+        node->move.piece = *piece;
+
+        if(s_data->log == NULL)
+        {
+            s_data->log = node; // First move to be logged.
+        }
+        else
+        {
+            
+            struct mt_chess_log_node * const latest_node =
+                mt_chess_log_node_get_latest(s_data->log);
+
+            assert(latest_node != NULL);
+            assert(latest_node->next == NULL);
+
+            latest_node->next = node;
+            node->last = latest_node;
+        }
+    }
+
     s_data->turn = (enum mt_chess_color)(1 - (int)s_data->turn);
 
     assert(*out_msg == NULL);

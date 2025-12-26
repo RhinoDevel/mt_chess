@@ -29,7 +29,17 @@ struct mt_chess_log_node
  */
 void mt_chess_log_node_free(struct mt_chess_log_node * const node);
 
-struct mt_chess_log_node const * mt_chess_log_node_get_latest(
+
+/**
+ * - Caller takes ownership of returned node.
+ * - Return value must be freed after use with mt_chess_log_node_free().
+ */
+struct mt_chess_log_node * mt_chess_log_node_create();
+
+/**
+ * - Returns NULL, if NULL given.
+ */
+struct mt_chess_log_node * mt_chess_log_node_get_latest(
     struct mt_chess_log_node * const node);
 
 #endif //MT_CHESS_LOG_NODE

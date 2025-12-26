@@ -67,6 +67,177 @@ static size_t const s_unicode_len = sizeof unicode_piece[0][0];
 
 static struct mt_chess_data * s_data = NULL;
 
+static bool is_move_allowed_pawn(
+    struct mt_chess_piece const * const piece,
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    uint8_t const to_piece_id,
+    uint8_t * const out_remove_piece_id,
+    char const * * const out_msg)
+{
+    assert(piece != NULL && piece->id != 0);
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_remove_piece_id != NULL);
+    assert(out_msg != NULL);
+
+    assert(*out_msg == NULL);
+    assert(*out_remove_piece_id == 0);
+
+    // White has negative direction, because of rank order (8 to 1).
+    int const vert_dir = piece->color == mt_chess_color_white ? -1 : 1;
+    int const vert_dist = vert_dir * (to->row - from->row);
+
+    int const horiz_dist = abs((int)to->col - (int)from->col);
+
+    if(vert_dist == 0)
+    {
+        // (must have already been verified that the positions are not equal)
+        assert(0 < horiz_dist);
+
+        *out_msg = "Pawns cannot move to the sides.";
+        return false;
+    }
+
+    // Pawn moves vertically.
+
+    if(vert_dist < 0)
+    {
+        *out_msg = "Pawns cannot move backwards.";
+        return false;
+    }
+
+    // Pawn moves forward.
+
+    if(2 < vert_dist)
+    {
+        *out_msg = "Pawns can move at most two squares forward.";
+        return false;
+    }
+
+    // Pawn moves 1 or 2 squares forward.
+
+    if(vert_dist != 1)
+    {
+        // Pawn moves 2 squares forward.
+
+        assert(vert_dist == 2); // Checked above.
+
+        if(horiz_dist != 0)
+        {
+            *out_msg = "Pawns cannot move two squares forward while also moving to the side.";
+            return false;
+        }
+
+        // Pawn moves 2 squares forward straight.
+
+        enum mt_chess_row const first_row =
+            piece->color == mt_chess_color_white
+                ? mt_chess_row_2 : mt_chess_row_7;
+
+        if(from->row != first_row)
+        {
+            *out_msg = "Pawns can move two forward squares at once for their first move, only.";
+            return false;
+        }
+
+        // Pawn moves 2 squares forward straight for their first move.
+
+        // Should work for black and white:
+        int const middle_row = (from->row + to->row) / 2;
+        int const middle_board_index = middle_row * (mt_chess_row_1 + 1)
+                + from/*to*/->col;
+
+        if(s_data->board[middle_board_index] != 0)
+        {
+            *out_msg = "A pawn cannot move two squares in straight forward direction, if there is another piece in-between.";
+            return false;
+        }
+
+        if(to_piece_id != 0)
+        {
+            *out_msg = "A pawn cannot catch while moving two squares in straight forward direction.";
+            return false;
+        }
+
+        assert(*out_remove_piece_id == 0);
+        return true; // Seems to be an OK move.
+    }
+
+    // Pawn moves 1 square forward.
+
+    if(1 < horiz_dist)
+    {
+        *out_msg = "A pawn can move at most one square forward and to the side at once.";
+        return false;
+    }
+
+    // Pawn moves 1 square forward and at most 1 square to a side.
+
+    if(horiz_dist == 1)
+    {
+        // Pawn moves 1 square forward and 1 square to the side.
+        if(to_piece_id != 0)
+        {
+            // There is an opponent's piece at the destination square.
+            return true; // Seems to be an OK move.  
+        }
+        // There is no (opponent's) piece at the destination square.
+
+        struct mt_chess_log_node const * const latest =
+            mt_chess_log_node_get_latest(s_data->log);
+
+        if(latest == NULL)
+        {
+            *out_msg = "A pawn cannot move one square diagonally as initial move.";
+            return false;
+        }
+        // There was at least one preceding move.
+        assert(latest->move.piece.color != s_data->turn);
+        if(latest->move.piece.type != mt_chess_type_pawn)
+        {
+            *out_msg = "A pawn can at most move one square diagonally after an opponent's pawn's move.";
+            return false;
+        }
+        // The last move was a pawn's move.
+
+        if(to->col == latest->move.to/*from*/.col
+            && ( // Turn-color must be white:
+                (from->row == mt_chess_row_5
+                && to->row == mt_chess_row_6
+                && latest->move.from.row == mt_chess_row_7
+                && latest->move.to.row == mt_chess_row_5)
+                // Turn color must be black:
+                || (from->row == mt_chess_row_4
+                    && to->row == mt_chess_row_3
+                    && latest->move.from.row == mt_chess_row_2
+                    && latest->move.to.row == mt_chess_row_4)))
+        {
+            assert(to_piece_id == 0); // There must never be a piece there.
+
+            // "En passant" detected.
+            *out_remove_piece_id = latest->move.piece.id;
+            return true; // Seems to be an OK move. 
+        }
+
+        *out_msg = "Not an \"en passant\" move.";
+        return false;
+    }
+
+    // Pawn moves 1 square forward straight.
+
+    assert(horiz_dist == 0);
+
+    if(to_piece_id != 0)
+    {
+        *out_msg = "A pawn cannot catch while moving one square in straight forward direction.";
+        return false;
+    }
+
+    assert(*out_remove_piece_id == 0);
+    return true; // Seems to be an OK move.
+}
+
 static bool is_move_allowed(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
@@ -77,6 +248,7 @@ static bool is_move_allowed(
     assert(piece != NULL && piece->id != 0);
     assert(from != NULL && !mt_chess_pos_is_invalid(from));
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_remove_piece_id != NULL);
     assert(out_msg != NULL);
     
     struct mt_chess_piece const * to_piece = NULL;
@@ -131,123 +303,14 @@ static bool is_move_allowed(
         }
         case mt_chess_type_pawn:
         {
-            // White has negative direction, because of rank order (8 to 1).
-            int const vert_dir = piece->color == mt_chess_color_white ? -1 : 1;
-
-            int const vert_dist = vert_dir * (to->row - from->row);
-
-            int const horiz_dist = abs((int)to->col - (int)from->col);
-
-            if(vert_dist == 0)
+            if(!is_move_allowed_pawn(
+                    piece, from, to, to_piece_id, out_remove_piece_id, out_msg))
             {
-                // (must have already been verified that the positions are not
-                // equal)
-                assert(0 < horiz_dist);
-
-                *out_msg = "Pawns cannot move to the sides.";
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
-            // Pawn moves vertically.
-            if(vert_dist < 0)
-            {
-                *out_msg = "Pawns cannot move backwards.";
-                return false;
-            }
-            // Pawn moves forward.
-            if(2 < vert_dist)
-            {
-                *out_msg = "Pawns can move at most two squares forward.";
-                return false;
-            }
-            // Pawn moves 1 or 2 squares forward.
-            if(vert_dist != 1)
-            {
-                // Pawn moves 2 squares forward.
-                assert(vert_dist == 2); // Checked above.
-
-                if(horiz_dist != 0)
-                {
-                    *out_msg = "Pawns cannot move two squares forward while also moving to the side.";
-                    return false;
-                }
-
-                // Pawn moves 2 squares forward straight.
-
-                enum mt_chess_row const first_row =
-                    piece->color == mt_chess_color_white
-                        ? mt_chess_row_2 : mt_chess_row_7;
-
-                if(from->row != first_row)
-                {
-                    *out_msg = "Pawns can move two forward squares at once for their first move, only.";
-                    return false;
-                }
-                // Pawn moves 2 squares forward straight for their first move.
-
-                *out_remove_piece_id = to_piece_id;
-                break; // Seems to be an OK move.
-            }
-            // Pawn moves 1 square forward.
-            if(1 < horiz_dist)
-            {
-                *out_msg = "A pawn can move at most one square forward and to the side at once.";
-                return false;
-            }
-            // Pawn moves 1 square forward and at most 1 square to a side.
-            if(horiz_dist == 1)
-            {
-                // Pawn moves 1 square forward and 1 square to the side.
-                if(to_piece_id != 0)
-                {
-                    // There is an opponent's piece at the destination square.
-                    break; // Seems to be an OK move.  
-                }
-                // There is no (opponent's) piece at the destination square.
-
-                struct mt_chess_log_node const * const latest =
-                    mt_chess_log_node_get_latest(s_data->log);
-
-                if(latest == NULL)
-                {
-                    *out_msg = "A pawn cannot move one square diagonally as initial move.";
-                    return false;
-                }
-                // There was at least one preceding move.
-                assert(latest->move.piece.color != s_data->turn);
-                if(latest->move.piece.type != mt_chess_type_pawn)
-                {
-                    *out_msg = "A pawn can at most move one square diagonally after an opponent's pawn's move.";
-                    return false;
-                }
-                // The last move was a pawn's move.
-
-                if(to->col == latest->move.to/*from*/.col
-                    && ( // Turn-color must be white:
-                        (from->row == mt_chess_row_5
-                        && to->row == mt_chess_row_6
-                        && latest->move.from.row == mt_chess_row_7
-                        && latest->move.to.row == mt_chess_row_5)
-                        // Turn color must be black:
-                        || (from->row == mt_chess_row_4
-                            && to->row == mt_chess_row_3
-                            && latest->move.from.row == mt_chess_row_2
-                            && latest->move.to.row == mt_chess_row_4)))
-                {
-                    // "En passant" detected.
-                    *out_remove_piece_id = latest->move.piece.id;
-                    break; // Seems to be an OK move. 
-                }
-                *out_msg = "Not an \"en passant\" move.";
-                return false;
-            }
-            // Pawn moves 1 square forward straight.
-            assert(horiz_dist == 0);
-            if(to_piece_id != 0)
-            {
-                *out_msg = "A pawn cannot catch in straight forward direction.";
-                return false;
-            }
-            break; // Seems to be an OK move.
+            break;
         }
         case mt_chess_type_knight:
         {
@@ -282,7 +345,7 @@ static bool is_move_allowed(
 
     if(*out_remove_piece_id == 0)
     {
-        *out_remove_piece_id = to_piece_id;
+        *out_remove_piece_id = to_piece_id; // Although unnecessary, here.
     }
     //
     // Otherwise: Set after valid "en passant" detection.

@@ -144,20 +144,31 @@ static bool is_move_allowed(
                 *out_msg = "Pawns cannot move to the sides.";
                 return false;
             }
+            // Pawn moves vertically.
             if(vert_dist < 0)
             {
                 *out_msg = "Pawns cannot move backwards.";
                 return false;
             }
+            // Pawn moves forward.
             if(2 < vert_dist)
             {
                 *out_msg = "Pawns can move at most two squares forward.";
                 return false;
             }
-
+            // Pawn moves 1 or 2 squares forward.
             if(vert_dist != 1)
             {
+                // Pawn moves 2 squares forward.
                 assert(vert_dist == 2); // Checked above.
+
+                if(horiz_dist != 0)
+                {
+                    *out_msg = "Pawns cannot move two squares forward while also moving to the side.";
+                    return false;
+                }
+
+                // Pawn moves 2 squares forward straight.
 
                 enum mt_chess_row const first_row =
                     piece->color == mt_chess_color_white
@@ -168,22 +179,28 @@ static bool is_move_allowed(
                     *out_msg = "Pawns can move two forward squares at once for their first move, only.";
                     return false;
                 }
+                // Pawn moves 2 squares forward straight for their first move.
+                break; // Seems to be an OK move.
             }
-
+            // Pawn moves 1 square forward.
             if(1 < horiz_dist)
             {
                 *out_msg = "A pawn can move at most one square forward and to the side at once.";
                 return false;
             }
+            // Pawn moves 1 square forward and at most 1 square to a side.
             if(horiz_dist == 1)
             {
+                // Pawn moves 1 square forward and 1 square to the side.
                 if(to_piece_id == 0) // TODO: Too simple! Implement support for "en passant" rule!
                 {
                     *out_msg = "A pawn can move diagonally only, if there is an opponent's piece to capture.";
                     return false;
                 }
             }
-            break;
+            // Pawn moves 1 square forward straight.
+            assert(horiz_dist == 0);
+            break; // Seems to be an OK move.
         }
         case mt_chess_type_knight:
         {
@@ -213,6 +230,8 @@ static bool is_move_allowed(
             return false;
         }
     }
+
+    // TODO: Check and return false, if move would result in check of own king!
 
     assert(*out_msg == NULL);
     return true;

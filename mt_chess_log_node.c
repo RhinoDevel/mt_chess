@@ -47,12 +47,15 @@ struct mt_chess_log_node * mt_chess_log_node_create()
     return ret_val;
 }
 
-struct mt_chess_log_node const * mt_chess_log_node_get_latest(
+struct mt_chess_log_node * mt_chess_log_node_get_latest(
     struct mt_chess_log_node * const node)
 {
-    assert(node != NULL);
-    
-    struct mt_chess_log_node const * ret_val = node;
+    struct mt_chess_log_node * ret_val = node;
+
+    if(ret_val == NULL)
+    {
+        return NULL/*ret_val*/;
+    }
 
     while(ret_val->next != NULL)
     {

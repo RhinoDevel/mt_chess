@@ -192,11 +192,16 @@ static bool is_move_allowed(
             if(horiz_dist == 1)
             {
                 // Pawn moves 1 square forward and 1 square to the side.
-                if(to_piece_id == 0) // TODO: Too simple! Implement support for "en passant" rule!
+                if(to_piece_id != 0)
                 {
-                    *out_msg = "A pawn can move diagonally only, if there is an opponent's piece to capture.";
-                    return false;
+                    // There is an opponent's piece at the destination square.
+                    break; // Seems to be an OK move.  
                 }
+                // There is no (opponent's) piece at the destination square.
+
+                // TODO: "En passant" check: Check last move in log!
+
+                break; // Seems to be an OK move.    
             }
             // Pawn moves 1 square forward straight.
             assert(horiz_dist == 0);

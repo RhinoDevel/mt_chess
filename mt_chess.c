@@ -71,6 +71,7 @@ static bool is_move_allowed(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
     struct mt_chess_pos const * const to,
+    uint8_t * const out_remove_piece_id,
     char const * * const out_msg)
 {
     assert(piece != NULL && piece->id != 0);
@@ -80,6 +81,7 @@ static bool is_move_allowed(
     
     struct mt_chess_piece const * to_piece = NULL;
 
+    *out_remove_piece_id = 0;
     *out_msg = NULL;
     
     if(piece->color != s_data->turn)
@@ -98,7 +100,7 @@ static bool is_move_allowed(
     int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
     assert(0 <= to_board_index && to_board_index < 8 * 8);
 
-    int const to_piece_id = s_data->board[to_board_index];
+    uint8_t const to_piece_id = s_data->board[to_board_index];
 
     if(to_piece_id != 0)
     {
@@ -181,6 +183,8 @@ static bool is_move_allowed(
                     return false;
                 }
                 // Pawn moves 2 squares forward straight for their first move.
+
+                *out_remove_piece_id = to_piece_id;
                 break; // Seems to be an OK move.
             }
             // Pawn moves 1 square forward.
@@ -230,6 +234,7 @@ static bool is_move_allowed(
                             && latest->move.to.row == mt_chess_row_4)))
                 {
                     // "En passant" detected.
+                    *out_remove_piece_id = latest->move.piece.id;
                     break; // Seems to be an OK move. 
                 }
                 *out_msg = "Not an \"en passant\" move.";
@@ -237,6 +242,11 @@ static bool is_move_allowed(
             }
             // Pawn moves 1 square forward straight.
             assert(horiz_dist == 0);
+            if(to_piece_id != 0)
+            {
+                *out_msg = "A pawn cannot catch in straight forward direction.";
+                return false;
+            }
             break; // Seems to be an OK move.
         }
         case mt_chess_type_knight:
@@ -269,6 +279,13 @@ static bool is_move_allowed(
     }
 
     // TODO: Check and return false, if move would result in check of own king!
+
+    if(*out_remove_piece_id == 0)
+    {
+        *out_remove_piece_id = to_piece_id;
+    }
+    //
+    // Otherwise: Set after valid "en passant" detection.
 
     assert(*out_msg == NULL);
     return true;
@@ -741,11 +758,13 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     char const to_file, char const to_rank,
     char const * * const out_msg)
 {
+    uint8_t remove_piece_id = 0;
+
     assert(out_msg != NULL);
     *out_msg = NULL;
     
     struct mt_chess_pos const from = mt_chess_pos_get(from_file, from_rank);
-    
+
     if(mt_chess_pos_is_invalid(&from))
     {
         assert(false); // Should have already been handled by caller.
@@ -780,20 +799,32 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     struct mt_chess_piece const * const piece = s_data->pieces + piece_index;
     assert(piece->id == piece_id);
     
-    if(!is_move_allowed(piece, &from, &to, out_msg))
+    if(!is_move_allowed(piece, &from, &to, &remove_piece_id, out_msg))
     {
+        assert(remove_piece_id == 0); // Although does not matter, here.
         assert(*out_msg != NULL);
         return false;
     }
     
     // TODO: Actually move both pieces during castling.
-    // TODO: Actually remove other piece "on passant".
     
     s_data->board[piece_board_index] = 0;
     
     int const to_board_index = ((int)mt_chess_col_h + 1) * to.row + to.col;
     assert(0 <= to_board_index && to_board_index < 8 * 8);
     
+    // E.g. for "en passant":
+    if(remove_piece_id != 0 && remove_piece_id != s_data->board[to_board_index])
+    {
+        for(int i = 0; i < 8 * 8; ++i) // Overdone, if for "en passant", only.
+        {
+            if(s_data->board[i] == remove_piece_id)
+            {
+                s_data->board[i] = 0;
+            }
+        }
+    }
+
     s_data->board[to_board_index] = piece->id;
     
     // Log:

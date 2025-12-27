@@ -270,6 +270,35 @@ static bool is_move_allowed_rook(
     return true; // Seems to be an OK move.
 }
 
+static bool is_move_allowed_queen(
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+
+    assert(*out_msg == NULL);
+
+    if(is_move_allowed_rook(from, to, out_msg))
+    {
+        assert(*out_msg == NULL);
+        return true;; // Seems to be an OK move.
+    }
+    assert(*out_msg != NULL);
+    *out_msg = NULL; // To avoid assertion in bishop function..
+    if(is_move_allowed_bishop(from, to, out_msg))
+    {
+        assert(*out_msg == NULL);
+        return true; // Seems to be an OK move.
+    }
+    assert(*out_msg != NULL); // Although msg. will be overwritten.
+    // Unfortun. a vague msg. to be able to use the rook & bishop functions..
+    *out_msg = "Queen cannot move this way or is blocked by a piece in the way.";
+    return false;
+}
+
 static bool is_move_allowed_pawn(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
@@ -547,25 +576,13 @@ static bool is_move_allowed(
         }
         case mt_chess_type_queen:
         {
-            if(is_move_allowed_rook(from, to, out_msg))
+            if(!is_move_allowed_queen(from, to, out_msg))
             {
-                assert(*out_msg == NULL);
-                assert(*out_remove_piece_id == 0);
-                break; // Seems to be an OK move.
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
+                return false;
             }
-            assert(*out_msg != NULL);
-            *out_msg = NULL; // To avoid assertion in bishop function..
-            if(is_move_allowed_bishop(from, to, out_msg))
-            {
-                assert(*out_msg == NULL);
-                assert(*out_remove_piece_id == 0);
-                break; // Seems to be an OK move.
-            }
-            assert(*out_msg != NULL); // Although msg. will be overwritten.
-            // Unfortunately a vague msg. to be able to use the rook & bishop
-            // functions..
-            *out_msg = "Queen cannot move this way or is blocked by a piece in the way.";
-            return false;
+            break;
         }
 
         default:

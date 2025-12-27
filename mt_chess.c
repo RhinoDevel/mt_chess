@@ -319,7 +319,60 @@ static bool is_move_allowed(
         }
         case mt_chess_type_bishop:
         {
-            // TODO: Implement!
+            uint8_t col = 0;
+            uint8_t last_col = 0;
+            
+            uint8_t row = 0;
+            uint8_t last_row = 0;
+
+            if(from->col < to->col)
+            {
+                col = from->col + 1;
+                last_col = to->col - 1;
+            }
+            else
+            {
+                assert(to->col <= from->col);
+                col = to->col + 1;
+                last_col = from->col - 1;
+            }
+
+            if(from->row < to->row)
+            {
+                row = from->row + 1;
+                last_row = to->row - 1;
+            }
+            else
+            {
+                assert(to->row <= from->row);
+                row = to->row + 1;
+                last_row = from->row - 1;
+            }
+
+            if(last_row - row != last_col - col)
+            {
+                *out_msg = "A bishop can move diagonally, only.";
+                return false;
+            }
+
+            while(row <= last_row)
+            {
+                assert(col <= last_col);
+
+                int const row_offset = ((int)mt_chess_col_h + 1) * row;
+                int const board_index = row_offset + col;
+                assert(0 <= board_index && board_index < 8 * 8);
+
+                if(s_data->board[board_index] != 0)
+                {
+                    *out_msg = "There is at least one piece in the bishop's path.";
+                    return false;
+                }
+
+                ++row;
+                ++col;
+            }
+            assert(last_col + 1 == col);
             break;
         }
         case mt_chess_type_rook:
@@ -340,7 +393,7 @@ static bool is_move_allowed(
                 }
                 else
                 {
-                    assert(to->col < from->col);
+                    assert(to->col <= from->col);
                     board_index = to->col + 1;
                     last_board_index = from->col - 1;
                 }
@@ -369,8 +422,8 @@ static bool is_move_allowed(
                 {
                     // A vertical move.
 
-                    int row = 0;
-                    int last_row = 0;
+                    uint8_t row = 0;
+                    uint8_t last_row = 0;
 
                     if(from->row < to->row)
                     {
@@ -379,7 +432,7 @@ static bool is_move_allowed(
                     }
                     else
                     {
-                        assert(to->row < from->row);
+                        assert(to->row <= from->row);
                         row = to->row + 1;
                         last_row = from->row - 1;
                     }
@@ -389,11 +442,13 @@ static bool is_move_allowed(
                         int const row_offset = ((int)mt_chess_col_h + 1) * row;
                         int const board_index = row_offset + from/*to*/->col;
 
-                    if(s_data->board[board_index] != 0)
-                    {
-                        *out_msg = "There is at least one piece blocking the rook's path on its file.";
-                        return false;
-                    }
+                        assert(0 <= board_index && board_index < 8 * 8);
+
+                        if(s_data->board[board_index] != 0)
+                        {
+                            *out_msg = "There is at least one piece blocking the rook's path on its file.";
+                            return false;
+                        }
 
                         ++row;
                     }

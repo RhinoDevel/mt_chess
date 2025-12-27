@@ -67,6 +67,42 @@ static size_t const s_unicode_len = sizeof unicode_piece[0][0];
 
 static struct mt_chess_data * s_data = NULL;
 
+static bool is_move_allowed_knight(
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+
+    assert(*out_msg == NULL);
+
+    // 0| |x| |x| |
+    // ------------
+    // 1|x| | | |x|
+    // ------------
+    // 2| | |n| | |
+    // ------------
+    // 3|x| | | |x|
+    // ------------
+    // 4| |x| |x| |
+    // ------------
+    //  |0|1|2|3|4|
+
+    int const vert_dist = abs((int)to->row - (int)from->row);
+    int const horiz_dist = abs((int)to->col - (int)from->col);
+
+    if((vert_dist == 2 && horiz_dist == 1)
+        || (vert_dist == 1 && horiz_dist == 2))
+    {
+        assert(*out_msg == NULL);
+        return true; // Seems to be a OK move.
+    }
+    *out_msg = "A knight cannot move this way.";
+    return false;
+}
+
 static bool is_move_allowed_pawn(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
@@ -314,28 +350,13 @@ static bool is_move_allowed(
         }
         case mt_chess_type_knight:
         {
-            // 0| |x| |x| |
-            // ------------
-            // 1|x| | | |x|
-            // ------------
-            // 2| | |n| | |
-            // ------------
-            // 3|x| | | |x|
-            // ------------
-            // 4| |x| |x| |
-            // ------------
-            //  |0|1|2|3|4|
-
-            int const vert_dist = abs((int)to->row - (int)from->row);
-            int const horiz_dist = abs((int)to->col - (int)from->col);
-
-            if((vert_dist == 2 && horiz_dist == 1)
-                || (vert_dist == 1 && horiz_dist == 2))
+            if(!is_move_allowed_knight(from, to, out_msg))
             {
-                break; // Seems to be a OK move.
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
+                return false;
             }
-            *out_msg = "A knight cannot move this way.";
-            return false;
+            break;
         }
         case mt_chess_type_bishop:
         {

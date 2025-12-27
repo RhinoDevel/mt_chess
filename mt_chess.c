@@ -173,6 +173,103 @@ static bool is_move_allowed_bishop(
     return true;
 }
 
+static bool is_move_allowed_rook(
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+
+    assert(*out_msg == NULL);
+
+    if(from->row == to->row)
+    {
+        assert(from->col != to->col); // Must have been checked before.
+
+        // A horizontal move.
+
+        int board_index = 0;
+        int last_board_index = 0;
+
+        if(from->col < to->col)
+        {
+            board_index = from->col + 1;
+            last_board_index = to->col - 1;
+        }
+        else
+        {
+            assert(to->col <= from->col);
+            board_index = to->col + 1;
+            last_board_index = from->col - 1;
+        }
+
+        int const row_offset =
+                ((int)mt_chess_col_h + 1) * from/*to*/->row;
+
+        board_index += row_offset;
+        assert(0 <= board_index && board_index < 8 * 8);
+        last_board_index += row_offset;
+        assert(0 <= last_board_index && last_board_index < 8 * 8);
+
+        while(board_index <= last_board_index)
+        {
+            if(s_data->board[board_index] != 0)
+            {
+                *out_msg = "There is at least one piece blocking the rook's path on its rank.";
+                return false;
+            }
+            ++board_index;
+        }
+
+        assert(*out_msg == NULL);
+        return true; // Seems to be an OK move.
+    }
+
+    if(from->col != to->col)
+    {
+        // Suggested horizontal & vertical move. => Not supported.
+        *out_msg = "A rook can either move on a rank or a file, not both.";
+        return false;
+    }
+
+    // A vertical move.
+
+    uint8_t row = 0;
+    uint8_t last_row = 0;
+
+    if(from->row < to->row)
+    {
+        row = from->row + 1;
+        last_row = to->row - 1;
+    }
+    else
+    {
+        assert(to->row <= from->row);
+        row = to->row + 1;
+        last_row = from->row - 1;
+    }
+
+    while(row <= last_row)
+    {
+        int const row_offset = ((int)mt_chess_col_h + 1) * row;
+        int const board_index = row_offset + from/*to*/->col;
+
+        assert(0 <= board_index && board_index < 8 * 8);
+
+        if(s_data->board[board_index] != 0)
+        {
+            *out_msg = "There is at least one piece blocking the rook's path on its file.";
+            return false;
+        }
+
+        ++row;
+    }
+    assert(*out_msg == NULL);
+    return true; // Seems to be an OK move.
+}
+
 static bool is_move_allowed_pawn(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
@@ -440,88 +537,11 @@ static bool is_move_allowed(
         }
         case mt_chess_type_rook:
         {
-            if(from->row == to->row)
+            if(!is_move_allowed_rook(from, to, out_msg))
             {
-                assert(from->col != to->col); // Must have been checked before.
-
-                // A horizontal move.
-
-                int board_index = 0;
-                int last_board_index = 0;
-
-                if(from->col < to->col)
-                {
-                    board_index = from->col + 1;
-                    last_board_index = to->col - 1;
-                }
-                else
-                {
-                    assert(to->col <= from->col);
-                    board_index = to->col + 1;
-                    last_board_index = from->col - 1;
-                }
-
-                int const row_offset =
-                        ((int)mt_chess_col_h + 1) * from/*to*/->row;
-
-                board_index += row_offset;
-                assert(0 <= board_index && board_index < 8 * 8);
-                last_board_index += row_offset;
-                assert(0 <= last_board_index && last_board_index < 8 * 8);
-
-                while(board_index <= last_board_index)
-                {
-                    if(s_data->board[board_index] != 0)
-                    {
-                        *out_msg = "There is at least one piece blocking the rook's path on its rank.";
-                        return false;
-                    }
-                    ++board_index;
-                }
-            }
-            else
-            {
-                if(from->col == to->col)
-                {
-                    // A vertical move.
-
-                    uint8_t row = 0;
-                    uint8_t last_row = 0;
-
-                    if(from->row < to->row)
-                    {
-                        row = from->row + 1;
-                        last_row = to->row - 1;
-                    }
-                    else
-                    {
-                        assert(to->row <= from->row);
-                        row = to->row + 1;
-                        last_row = from->row - 1;
-                    }
-
-                    while(row <= last_row)
-                    {
-                        int const row_offset = ((int)mt_chess_col_h + 1) * row;
-                        int const board_index = row_offset + from/*to*/->col;
-
-                        assert(0 <= board_index && board_index < 8 * 8);
-
-                        if(s_data->board[board_index] != 0)
-                        {
-                            *out_msg = "There is at least one piece blocking the rook's path on its file.";
-                            return false;
-                        }
-
-                        ++row;
-                    }
-                }
-                else
-                {
-                    // Suggested horizontal & vertical move. => Not supported.
-                    *out_msg = "A rook can either move on a rank or a file, not both.";
-                    return false;
-                }
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
+                return false;
             }
             break;
         }

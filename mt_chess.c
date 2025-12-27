@@ -324,7 +324,87 @@ static bool is_move_allowed(
         }
         case mt_chess_type_rook:
         {
-            // TODO: Implement!
+            if(from->row == to->row)
+            {
+                assert(from->col != to->col); // Must have been checked before.
+
+                // A horizontal move.
+
+                int board_index = 0;
+                int last_board_index = 0;
+
+                if(from->col < to->col)
+                {
+                    board_index = from->col + 1;
+                    last_board_index = to->col - 1;
+                }
+                else
+                {
+                    assert(to->col < from->col);
+                    board_index = to->col + 1;
+                    last_board_index = from->col - 1;
+                }
+
+                int const row_offset =
+                        ((int)mt_chess_col_h + 1) * from/*to*/->row;
+
+                board_index += row_offset;
+                assert(0 <= board_index && board_index < 8 * 8);
+                last_board_index += row_offset;
+                assert(0 <= last_board_index && last_board_index < 8 * 8);
+
+                while(board_index <= last_board_index)
+                {
+                    if(s_data->board[board_index] != 0)
+                    {
+                        *out_msg = "There is at least one piece blocking the rook's path on its rank.";
+                        return false;
+                    }
+                    ++board_index;
+                }
+            }
+            else
+            {
+                if(from->col == to->col)
+                {
+                    // A vertical move.
+
+                    int row = 0;
+                    int last_row = 0;
+
+                    if(from->row < to->row)
+                    {
+                        row = from->row + 1;
+                        last_row = to->row - 1;
+                    }
+                    else
+                    {
+                        assert(to->row < from->row);
+                        row = to->row + 1;
+                        last_row = from->row - 1;
+                    }
+
+                    while(row <= last_row)
+                    {
+                        int const row_offset = ((int)mt_chess_col_h + 1) * row;
+                        int const board_index = row_offset + from/*to*/->col;
+
+                    if(s_data->board[board_index] != 0)
+                    {
+                        *out_msg = "There is at least one piece blocking the rook's path on its file.";
+                        return false;
+                    }
+
+                        ++row;
+                    }
+                }
+                else
+                {
+                    // Suggested horizontal & vertical move. => Not supported.
+                    *out_msg = "A rook can either move on a rank or a file, not both.";
+                    return false;
+                }
+            }
             break;
         }
         case mt_chess_type_queen:

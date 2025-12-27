@@ -103,6 +103,76 @@ static bool is_move_allowed_knight(
     return false;
 }
 
+static bool is_move_allowed_bishop(
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+
+    assert(*out_msg == NULL);
+
+    uint8_t col = 0;
+    uint8_t last_col = 0;
+    
+    uint8_t row = 0;
+    uint8_t last_row = 0;
+
+    if(from->col < to->col)
+    {
+        col = from->col + 1;
+        last_col = to->col - 1;
+    }
+    else
+    {
+        assert(to->col <= from->col);
+        col = to->col + 1;
+        last_col = from->col - 1;
+    }
+
+    if(from->row < to->row)
+    {
+        row = from->row + 1;
+        last_row = to->row - 1;
+    }
+    else
+    {
+        assert(to->row <= from->row);
+        row = to->row + 1;
+        last_row = from->row - 1;
+    }
+
+    if(last_row - row != last_col - col)
+    {
+        *out_msg = "A bishop can move diagonally, only.";
+        return false;
+    }
+
+    while(row <= last_row)
+    {
+        assert(col <= last_col);
+
+        int const row_offset = ((int)mt_chess_col_h + 1) * row;
+        int const board_index = row_offset + col;
+        assert(0 <= board_index && board_index < 8 * 8);
+
+        if(s_data->board[board_index] != 0)
+        {
+            *out_msg = "There is at least one piece in the bishop's path.";
+            return false;
+        }
+
+        ++row;
+        ++col;
+    }
+    assert(last_col + 1 == col);
+
+    assert(*out_msg == NULL);
+    return true;
+}
+
 static bool is_move_allowed_pawn(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
@@ -360,61 +430,13 @@ static bool is_move_allowed(
         }
         case mt_chess_type_bishop:
         {
-            uint8_t col = 0;
-            uint8_t last_col = 0;
-            
-            uint8_t row = 0;
-            uint8_t last_row = 0;
-
-            if(from->col < to->col)
+            if(!is_move_allowed_bishop(from, to, out_msg))
             {
-                col = from->col + 1;
-                last_col = to->col - 1;
-            }
-            else
-            {
-                assert(to->col <= from->col);
-                col = to->col + 1;
-                last_col = from->col - 1;
-            }
-
-            if(from->row < to->row)
-            {
-                row = from->row + 1;
-                last_row = to->row - 1;
-            }
-            else
-            {
-                assert(to->row <= from->row);
-                row = to->row + 1;
-                last_row = from->row - 1;
-            }
-
-            if(last_row - row != last_col - col)
-            {
-                *out_msg = "A bishop can move diagonally, only.";
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
-
-            while(row <= last_row)
-            {
-                assert(col <= last_col);
-
-                int const row_offset = ((int)mt_chess_col_h + 1) * row;
-                int const board_index = row_offset + col;
-                assert(0 <= board_index && board_index < 8 * 8);
-
-                if(s_data->board[board_index] != 0)
-                {
-                    *out_msg = "There is at least one piece in the bishop's path.";
-                    return false;
-                }
-
-                ++row;
-                ++col;
-            }
-            assert(last_col + 1 == col);
-            break;
+            break;  
         }
         case mt_chess_type_rook:
         {

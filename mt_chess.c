@@ -531,6 +531,15 @@ static bool is_move_allowed(
         case mt_chess_type_king:
         {
             // TODO: Implement!
+            //
+            // - Return false, if is_move_allowed_queen() returns false.
+            // - Otherwise:
+            //   - If to-square is adjacent to from-square, return false, if
+            //     the other king's current square is adjacent to the to-square,
+            //     too.
+            //   - Otherwise:
+            //     If circumstances for castling are not given, return false.
+            //     - Otherwise: OK!
             break;
         }
         case mt_chess_type_pawn:

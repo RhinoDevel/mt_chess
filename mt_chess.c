@@ -547,8 +547,25 @@ static bool is_move_allowed(
         }
         case mt_chess_type_queen:
         {
-            // TODO: Implement!
-            break;
+            if(is_move_allowed_rook(from, to, out_msg))
+            {
+                assert(*out_msg == NULL);
+                assert(*out_remove_piece_id == 0);
+                break; // Seems to be an OK move.
+            }
+            assert(*out_msg != NULL);
+            *out_msg = NULL; // To avoid assertion in bishop function..
+            if(is_move_allowed_bishop(from, to, out_msg))
+            {
+                assert(*out_msg == NULL);
+                assert(*out_remove_piece_id == 0);
+                break; // Seems to be an OK move.
+            }
+            assert(*out_msg != NULL); // Although msg. will be overwritten.
+            // Unfortunately a vague msg. to be able to use the rook & bishop
+            // functions..
+            *out_msg = "Queen cannot move this way or is blocked by a piece in the way.";
+            return false;
         }
 
         default:

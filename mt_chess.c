@@ -314,8 +314,28 @@ static bool is_move_allowed(
         }
         case mt_chess_type_knight:
         {
-            // TODO: Implement!
-            break;
+            // 0| |x| |x| |
+            // ------------
+            // 1|x| | | |x|
+            // ------------
+            // 2| | |n| | |
+            // ------------
+            // 3|x| | | |x|
+            // ------------
+            // 4| |x| |x| |
+            // ------------
+            //  |0|1|2|3|4|
+
+            int const vert_dist = abs((int)to->row - (int)from->row);
+            int const horiz_dist = abs((int)to->col - (int)from->col);
+
+            if((vert_dist == 2 && horiz_dist == 1)
+                || (vert_dist == 1 && horiz_dist == 2))
+            {
+                break; // Seems to be a OK move.
+            }
+            *out_msg = "A knight cannot move this way.";
+            return false;
         }
         case mt_chess_type_bishop:
         {

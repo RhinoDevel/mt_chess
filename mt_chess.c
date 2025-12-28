@@ -263,9 +263,10 @@ static bool is_move_allowed_king(
         }
 
         // TODO:
-        // - Are there no pieces in the way (of either king or rook)?
+        // - Is the to-square (of the king) empty?
+        // - Is the square the king crosses empty?
         // - Is the king not attacked on the from-square?
-        // - Does the king not move through an attacked field?
+        // - Is the square the king crosses not attacked?
         // - Is to-square not attacked?
         //
         assert(false); // Not implemented, yet!

@@ -97,7 +97,10 @@ static bool is_move_allowed_king(
         return false;
     }
 
-    int const horiz_dist = abs((int)to->col - (int)from->col);
+    // Is the to-square horizont. equal, adjacent or 2 squares away from origin?
+
+    int const horiz_dist_val = (int)to->col - (int)from->col;
+    int const horiz_dist = abs(horiz_dist_val);
 
     if(2 < horiz_dist)
     {
@@ -116,6 +119,22 @@ static bool is_move_allowed_king(
             return false;
         }
 
+        // Moving two squares on a row/rank.
+        assert(vert_dist == 0 && horiz_dist == 2);
+
+        // Is the straight horizontal two square move allowed on current rank?
+
+        uint8_t const start_row = s_data->turn == mt_chess_color_white
+            ? (uint8_t)mt_chess_row_1 : (uint8_t)mt_chess_row_8;
+
+        if(from/*to*/->row != start_row)
+        {
+            *out_msg = "A king can move two files at most on the start row.";
+            return false;
+        }
+
+        // Get king's piece object:
+
         int const board_index_king =
                 from->row * ((int)mt_chess_col_h + 1) + from->col;
         assert(0 <= board_index_king && board_index_king < 8 * 8);
@@ -129,6 +148,8 @@ static bool is_move_allowed_king(
         assert(piece_king->type == mt_chess_type_king);
         assert(piece_king->color == s_data->turn);
 
+        // Is this the king's initial move?
+        
         // Not performance-optimized (but should be OK, here):
         struct mt_chess_log_node * const last_log_node_king =
             mt_chess_log_node_get_latest_of_piece(s_data->log, piece_king->id);
@@ -144,9 +165,104 @@ static bool is_move_allowed_king(
             return false;
         }
 
+        // Get rook's position required for castling:
+
+        static uint8_t const rook_col_long = (uint8_t)mt_chess_col_a;
+        static uint8_t const rook_col_short = (uint8_t)mt_chess_col_h;
+        // (these are independent of color, because both queens are on file D)
+
+        int const rook_row_offset = from/*to*/->row * ((int)mt_chess_col_h + 1);
+
+        int const rook_col = 0 < horiz_dist_val
+                ? rook_col_short // Move to kingside.
+                : rook_col_long; // Move to queenside.
+
+        int const board_index_rook =
+                rook_row_offset * ((int)mt_chess_col_h + 1) + rook_col;
+        assert(0 <= board_index_rook && board_index_rook < 8 * 8);
+
+        // Get what may be the rook's piece ID, from the board:
+
+        uint8_t const board_rook_piece_id = s_data->board[board_index_rook];
+
+        // Is there a piece on the rook position necessary for castling?
+
+        if(board_rook_piece_id == 0)
+        {
+            if(rook_col == rook_col_short)
+            {
+                *out_msg = "Rook missing for kingside castling.";
+                return false;
+            }
+            assert(rook_col == rook_col_long);
+            *out_msg = "Rook missing for queenside castling.";
+            return false;
+        }
+
+        // Get object of piece that resides at the rook castling square:
+
+        int const rook_piece_index = mt_chess_piece_get_index(
+                s_data->pieces, board_rook_piece_id);
+        assert(0 < rook_piece_index);
+
+        struct mt_chess_piece const * const rook_piece =
+            s_data->pieces + rook_piece_index;
+        assert(rook_piece->id == board_rook_piece_id);
+
+        // Is it actually a rook at the position for castling?
+
+        if(rook_piece->type != mt_chess_type_rook)
+        {
+            if(rook_col == rook_col_short)
+            {
+                *out_msg = "The piece at kingside rook castling square is not a rook.";
+                return false;
+            }
+            assert(rook_col == rook_col_long);
+            *out_msg = "The piece at queenside rook castling square is not a rook.";
+            return false;
+        }
+
+        // Is the rook at the castling position the current player's?
+
+        if(rook_piece->color != s_data->turn)
+        {
+            if(rook_col == rook_col_short)
+            {
+                *out_msg = "There is an opponent's rook at kingside castling square.";
+                return false;
+            }
+            assert(rook_col == rook_col_long);
+            *out_msg = "There is an opponent's rook at queenside castling square.";
+            return false;
+        }
+
+        // Did the rook not move (on its own), yet?
+
+        // (this code is OK, even, if rook was implicitly moved before via
+        //  already done castling, because then the kind's-first-move check
+        //  will fail)
+
+        // Not performance-optimized (but should be OK, here):
+        struct mt_chess_log_node * const last_log_node_rook =
+            mt_chess_log_node_get_latest_of_piece(
+                s_data->log, rook_piece->id);
+
+        if(last_log_node_rook != NULL)
+        {
+            assert(last_log_node_rook->move.piece.id == rook_piece->id);
+            assert(
+                last_log_node_rook->move.piece.type == mt_chess_type_rook);
+            assert(last_log_node_rook->move.piece.color = s_data->turn);
+            assert(
+                last_log_node_rook->move.to.row == rook_col
+                    && last_log_node_rook->move.to.col == from/*to*/->row);
+
+            *out_msg = "This rook was already moved, castling not possible.";
+            return false;
+        }
+
         // TODO:
-        // - Is the to-square one of the valid castling destinations?
-        // - Did the rook never move?
         // - Are there no pieces in the way (of either king or rook)?
         // - Is the king not attacked on the from-square?
         // - Does the king not move through an attacked field?
@@ -158,6 +274,9 @@ static bool is_move_allowed_king(
     }
 
     // NOT castling.
+
+    assert(vert_dist <= 1 && horiz_dist <= 1);
+    assert((vert_dist == 0) != (horiz_dist == 0));
 
     assert(*out_msg == NULL);
     return true;

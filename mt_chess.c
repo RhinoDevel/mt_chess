@@ -262,27 +262,62 @@ static bool is_move_allowed_king(
             return false;
         }
 
+        // Verify that all squares are empty that need to be empty for castling:
+
         if(horiz_dist_val == 2)
         {
             // Kingside castling attempt.
 
-            // TODO: Implement!
+            // Is the square of file F empty?
+
+            if(s_data->board[board_index_king + 1] != 0)
+            {
+                *out_msg = "Square of file F is not empty, kingside castling not possible.";
+                return false;
+            }
+        
+            // Is the square of file G empty?
+
+            if(s_data->board[board_index_king + 2] != 0)
+            {
+                *out_msg = "Square of file G is not empty, kingside castling not possible.";
+                return false;
+            }
         }
         else
         {
             // Queenside castling attempt.
             assert(horiz_dist_val == -2);
 
-            // TODO: Implement!
+            // Is the square of file B empty?
+            
+            if(s_data->board[board_index_rook + 1] != 0)
+            {
+                *out_msg = "Square of file B is not empty, queenside castling not possible.";
+                return false;
+            }
+
+            // Is the square of file C empty?
+
+            if(s_data->board[board_index_rook + 2] != 0)
+            {
+                *out_msg = "Square of file C is not empty, queenside castling not possible.";
+                return false;
+            }
+
+            // Is the square of file D empty?
+
+            if(s_data->board[board_index_rook + 3] != 0)
+            {
+                *out_msg = "Square of file D is not empty, queenside castling not possible.";
+                return false;
+            }
         }
 
         // TODO:
-        // - Is the to-square (of the king) empty?
-        // - Is the square the king crosses empty?
-        // - On queenside castling, is the square of file B empty?
         // - Is the king not attacked on the from-square?
         // - Is the square the king crosses not attacked?
-        // - Is to-square not attacked?
+        // [- NOT TO BE CHECKED, HERE: Is to-square not attacked?]
         //
         assert(false); // Not implemented, yet!
         *out_msg = "CASTLING-CHECK IS NOT IMPLEMENTED, YET!";

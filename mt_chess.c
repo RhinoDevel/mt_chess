@@ -110,9 +110,42 @@ static bool is_move_allowed_king(
     {
         // Could be castling.
 
+        if(vert_dist != 0)
+        {
+            *out_msg = "A king can never move two files and rank(-s) at once.";
+            return false;
+        }
+
+        int const board_index_king =
+                from->row * ((int)mt_chess_col_h + 1) + from->col;
+        assert(0 <= board_index_king && board_index_king < 8 * 8);
+
+        int const piece_index_king = mt_chess_piece_get_index(
+                s_data->pieces, board_index_king);
+
+        struct mt_chess_piece const * const piece_king =
+            &s_data->pieces[piece_index_king];
+
+        assert(piece_king->type == mt_chess_type_king);
+        assert(piece_king->color == s_data->turn);
+
+        // Not performance-optimized (but should be OK, here):
+        struct mt_chess_log_node * const last_log_node_king =
+            mt_chess_log_node_get_latest_of_piece(s_data->log, piece_king->id);
+
+        if(last_log_node_king != NULL)
+        {
+            assert(last_log_node_king->move.piece.id == piece_king->id);
+            assert(last_log_node_king->move.piece.type == mt_chess_type_king);
+            assert(last_log_node_king->move.piece.color = s_data->turn);
+            assert(mt_chess_pos_are_equal(&last_log_node_king->move.to, from));
+
+            *out_msg = "This is not the king's first move, castling not possible.";
+            return false;
+        }
+
         // TODO:
         // - Is the to-square one of the valid castling destinations?
-        // - Is it the king's first move?
         // - Did the rook never move?
         // - Are there no pieces in the way (of either king or rook)?
         // - Is the king not attacked on the from-square?

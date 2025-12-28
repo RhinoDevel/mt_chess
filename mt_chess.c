@@ -22,6 +22,7 @@
 #include "mt_chess_col.h"
 #include "mt_chess.h"
 #include "mt_chess_log_node.h"
+#include "mt_chess_move.h"
 
 // TODO: These control codes are NOT compatible with (e.g.) Windows:
 //
@@ -317,11 +318,7 @@ static bool is_move_allowed_king(
         // TODO:
         // - Is the king not attacked on the from-square?
         // - Is the square the king crosses not attacked?
-        // [- NOT TO BE CHECKED, HERE: Is to-square not attacked?]
-        //
-        assert(false); // Not implemented, yet!
-        *out_msg = "CASTLING-CHECK IS NOT IMPLEMENTED, YET!";
-        return false;
+        // [- Not necessary to check, here: Is to-square not attacked?]
 
         assert(*out_msg == NULL);
         return true;
@@ -573,17 +570,14 @@ static bool is_move_allowed_pawn(
     struct mt_chess_pos const * const from,
     struct mt_chess_pos const * const to,
     uint8_t const to_piece_id,
-    uint8_t * const out_remove_piece_id,
     char const * * const out_msg)
 {
     assert(piece != NULL && piece->id != 0);
     assert(from != NULL && !mt_chess_pos_is_invalid(from));
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
-    assert(out_remove_piece_id != NULL);
     assert(out_msg != NULL);
 
     assert(*out_msg == NULL);
-    assert(*out_remove_piece_id == 0);
 
     // White has negative direction, because of rank order (8 to 1).
     int const vert_dir = piece->color == mt_chess_color_white ? -1 : 1;
@@ -660,8 +654,6 @@ static bool is_move_allowed_pawn(
             *out_msg = "A pawn cannot catch while moving two squares in straight forward direction.";
             return false;
         }
-
-        assert(*out_remove_piece_id == 0);
         return true; // Seems to be an OK move.
     }
 
@@ -717,7 +709,6 @@ static bool is_move_allowed_pawn(
             assert(to_piece_id == 0); // There must never be a piece there.
 
             // "En passant" detected.
-            *out_remove_piece_id = latest->move.piece.id;
             return true; // Seems to be an OK move. 
         }
 
@@ -734,8 +725,6 @@ static bool is_move_allowed_pawn(
         *out_msg = "A pawn cannot catch while moving one square in straight forward direction.";
         return false;
     }
-
-    assert(*out_remove_piece_id == 0);
     return true; // Seems to be an OK move.
 }
 
@@ -743,18 +732,15 @@ static bool is_move_allowed(
     struct mt_chess_piece const * const piece,
     struct mt_chess_pos const * const from,
     struct mt_chess_pos const * const to,
-    uint8_t * const out_remove_piece_id,
     char const * * const out_msg)
 {
     assert(piece != NULL && piece->id != 0);
     assert(from != NULL && !mt_chess_pos_is_invalid(from));
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
-    assert(out_remove_piece_id != NULL);
     assert(out_msg != NULL);
     
     struct mt_chess_piece const * to_piece = NULL;
 
-    *out_remove_piece_id = 0;
     *out_msg = NULL;
     
     if(piece->color != s_data->turn)
@@ -802,7 +788,6 @@ static bool is_move_allowed(
             if(!is_move_allowed_king(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;
@@ -810,10 +795,9 @@ static bool is_move_allowed(
         case mt_chess_type_pawn:
         {
             if(!is_move_allowed_pawn(
-                    piece, from, to, to_piece_id, out_remove_piece_id, out_msg))
+                    piece, from, to, to_piece_id, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;
@@ -823,7 +807,6 @@ static bool is_move_allowed(
             if(!is_move_allowed_knight(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;
@@ -833,7 +816,6 @@ static bool is_move_allowed(
             if(!is_move_allowed_bishop(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;  
@@ -843,7 +825,6 @@ static bool is_move_allowed(
             if(!is_move_allowed_rook(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;
@@ -853,7 +834,6 @@ static bool is_move_allowed(
             if(!is_move_allowed_queen(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
-                assert(*out_remove_piece_id == 0); // Although does not matter.
                 return false;
             }
             break;
@@ -867,15 +847,7 @@ static bool is_move_allowed(
         }
     }
 
-    // TODO: Check and return false, if move would result in check of own king
-    //       (do not forget rook's position change on castling)!
-
-    if(*out_remove_piece_id == 0)
-    {
-        *out_remove_piece_id = to_piece_id; // Although unnecessary, here.
-    }
-    //
-    // Otherwise: Already set after valid "en passant" detection.
+    // TODO: Check and return false, if king is under attack / in check after move (no matter, if this was already true before or would be caused by the suggested move)!
 
     assert(*out_msg == NULL);
     return true;
@@ -1348,11 +1320,10 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     char const to_file, char const to_rank,
     char const * * const out_msg)
 {
-    uint8_t remove_piece_id = 0;
-
     assert(out_msg != NULL);
     *out_msg = NULL;
     
+    struct mt_chess_move move;
     struct mt_chess_pos const from = mt_chess_pos_get(from_file, from_rank);
 
     if(mt_chess_pos_is_invalid(&from))
@@ -1389,33 +1360,17 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     struct mt_chess_piece const * const piece = s_data->pieces + piece_index;
     assert(piece->id == piece_id);
     
-    if(!is_move_allowed(piece, &from, &to, &remove_piece_id, out_msg))
+    if(!is_move_allowed(piece, &from, &to, out_msg))
     {
-        assert(remove_piece_id == 0); // Although does not matter, here.
         assert(*out_msg != NULL);
         return false;
     }
-    
-    s_data->board[piece_board_index] = 0;
-    
-    int const to_board_index = ((int)mt_chess_col_h + 1) * to.row + to.col;
-    assert(0 <= to_board_index && to_board_index < 8 * 8);
-    
-    // E.g. for "en passant":
-    if(remove_piece_id != 0 && remove_piece_id != s_data->board[to_board_index])
-    {
-        for(int i = 0; i < 8 * 8; ++i) // Overdone, if for "en passant", only.
-        {
-            if(s_data->board[i] == remove_piece_id)
-            {
-                s_data->board[i] = 0;
-            }
-        }
-    }
 
-    s_data->board[to_board_index] = piece->id;
-    
-    // TODO: Also move rook, if castling move detected!
+    move.piece = *piece;
+    move.from = from;
+    move.to = to;
+
+    mt_chess_move_apply(&move, s_data->board);
 
     // Log:
     //

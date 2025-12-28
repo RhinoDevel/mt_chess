@@ -97,6 +97,8 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         ++id;
     }
     assert(i == 2 * 2 * 8); // 32, for valid indices from 0 to 31.
+
+    // TODO: Just use i + 1 directly instead of extra ID?
     assert(id == i + 1); // 33, for valid IDs from 1 to 32.
 }
 

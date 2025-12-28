@@ -19,6 +19,7 @@
 #include "mt_chess_col.h"
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
+#include "mt_chess_attack.h"
 
 static int const s_row_len = (int)mt_chess_col_h + 1;
 
@@ -189,7 +190,17 @@ struct mt_chess_data * mt_chess_data_create()
     
     mt_chess_piece_init(ret_val->pieces);
     init_board(ret_val->pieces, ret_val->board);
-    ret_val->turn = mt_chess_color_white;
+    mt_chess_attack_update(
+        ret_val->pieces,
+        ret_val->board,
+        mt_chess_color_black, // <- Initial attacker.
+        ret_val->attacked_by_black);
+    mt_chess_attack_update(
+        ret_val->pieces,
+        ret_val->board,
+        mt_chess_color_white,
+        ret_val->attacked_by_white);
+    ret_val->turn = mt_chess_color_white; // <- Has the first turn.
     ret_val->log = NULL;
     
     return ret_val;

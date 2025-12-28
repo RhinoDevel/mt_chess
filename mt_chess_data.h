@@ -23,6 +23,14 @@ struct mt_chess_data
     // Holds mt_chess_piece.id values or 0 (= empty).
     uint8_t board[((int)mt_chess_row_1 + 1) * ((int)mt_chess_col_h + 1)];
     
+    // Squares being attacked by black.
+    uint8_t attacked_by_black[
+        ((int)mt_chess_row_1 + 1) * ((int)mt_chess_col_h + 1)];
+
+    // Squares being attacked by white.
+    uint8_t attacked_by_white[
+        ((int)mt_chess_row_1 + 1) * ((int)mt_chess_col_h + 1)];
+
     enum mt_chess_color turn;
 
     struct mt_chess_log_node * log;

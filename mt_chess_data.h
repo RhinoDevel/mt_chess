@@ -18,7 +18,7 @@
 
 struct mt_chess_data
 {
-    struct mt_chess_piece pieces[2 * 2 * ((int)mt_chess_row_1 + 1)];
+    struct mt_chess_piece pieces[2 * 2 * ((int)mt_chess_col_h + 1)];
     
     // Holds mt_chess_piece.id values or 0 (= empty).
     uint8_t board[((int)mt_chess_row_1 + 1) * ((int)mt_chess_col_h + 1)];

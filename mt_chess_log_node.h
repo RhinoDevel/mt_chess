@@ -29,7 +29,6 @@ struct mt_chess_log_node
  */
 void mt_chess_log_node_free(struct mt_chess_log_node * const node);
 
-
 /**
  * - Caller takes ownership of returned node.
  * - Return value must be freed after use with mt_chess_log_node_free().
@@ -41,5 +40,13 @@ struct mt_chess_log_node * mt_chess_log_node_create();
  */
 struct mt_chess_log_node * mt_chess_log_node_get_latest(
     struct mt_chess_log_node * const node);
+
+/**
+ * - Returns NULL, if NULL given.
+ * - Returns NULL, if piece with given ID did not move, yet.
+ */
+struct mt_chess_log_node * mt_chess_log_node_get_latest_of_piece(
+    struct mt_chess_log_node * const node, uint8_t const piece_id);
+
 
 #endif //MT_CHESS_LOG_NODE

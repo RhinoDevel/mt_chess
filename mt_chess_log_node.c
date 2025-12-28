@@ -63,3 +63,25 @@ struct mt_chess_log_node * mt_chess_log_node_get_latest(
     }
     return ret_val;
 }
+
+struct mt_chess_log_node * mt_chess_log_node_get_latest_of_piece(
+    struct mt_chess_log_node * const node, uint8_t const piece_id)
+{
+    assert(0 <= piece_id && piece_id < 2 * 2 * 8);
+
+    struct mt_chess_log_node * const latest =
+        mt_chess_log_node_get_latest(node);
+
+    struct mt_chess_log_node * ret_val = NULL;
+
+    ret_val = latest;
+    while(ret_val != NULL)
+    {
+        if(ret_val->move.piece.id == piece_id)
+        {
+            break; // Found
+        }
+        ret_val = ret_val->last;
+    }
+    return ret_val;
+}

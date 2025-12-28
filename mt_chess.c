@@ -67,6 +67,69 @@ static size_t const s_unicode_len = sizeof unicode_piece[0][0];
 
 static struct mt_chess_data * s_data = NULL;
 
+static bool is_move_allowed_king(
+    struct mt_chess_pos const * const from,
+    struct mt_chess_pos const * const to,
+    char const * * const out_msg)
+{
+    assert(from != NULL && !mt_chess_pos_is_invalid(from));
+    assert(to != NULL && !mt_chess_pos_is_invalid(to));
+    assert(out_msg != NULL);
+
+    assert(!mt_chess_pos_are_equal(from, to)); // Must have been checked before.
+    assert(*out_msg == NULL);
+
+    // 0| | | |
+    // --------
+    // 1| |k| |
+    // --------
+    // 2| | | |
+    // --------
+    //  |0|1|2|
+
+    // Is the to-square vertically equal or adjacent to the from-square?
+
+    int const vert_dist = abs((int)to->row - (int)from->row);
+
+    if(1 < vert_dist)
+    {
+        *out_msg = "A king can move at most one rank per turn.";
+        return false;
+    }
+
+    int const horiz_dist = abs((int)to->col - (int)from->col);
+
+    if(2 < horiz_dist)
+    {
+        // Neither a "normal", nor a castling move.
+        *out_msg = "A king can move at most two files per turn.";
+        return false;
+    }
+
+    if(horiz_dist == 2)
+    {
+        // Could be castling.
+
+        // TODO:
+        // - Is the to-square one of the valid castling destinations?
+        // - Is it the king's first move?
+        // - Did the rook never move?
+        // - Are there no pieces in the way (of either king or rook)?
+        // - Is the king not attacked on the from-square?
+        // - Does the king not move through an attacked field?
+        // - Is to-square not attacked?
+        //
+        assert(false); // Not implemented, yet!
+        *out_msg = "CASTLING-CHECK IS NOT IMPLEMENTED, YET!";
+        return false;
+    }
+
+    // NOT castling.
+
+    assert(*out_msg == NULL);
+    return true;
+}
+
 static bool is_move_allowed_knight(
     struct mt_chess_pos const * const from,
     struct mt_chess_pos const * const to,
@@ -284,7 +347,7 @@ static bool is_move_allowed_queen(
     if(is_move_allowed_rook(from, to, out_msg))
     {
         assert(*out_msg == NULL);
-        return true;; // Seems to be an OK move.
+        return true; // Seems to be an OK move.
     }
     assert(*out_msg != NULL);
     *out_msg = NULL; // To avoid assertion in bishop function..
@@ -530,16 +593,12 @@ static bool is_move_allowed(
     {
         case mt_chess_type_king:
         {
-            // TODO: Implement!
-            //
-            // - Return false, if is_move_allowed_queen() returns false.
-            // - Otherwise:
-            //   - If to-square is adjacent to from-square, return false, if
-            //     the other king's current square is adjacent to the to-square,
-            //     too.
-            //   - Otherwise:
-            //     If circumstances for castling are not given, return false.
-            //     - Otherwise: OK!
+            if(!is_move_allowed_king(from, to, out_msg))
+            {
+                assert(*out_msg != NULL);
+                assert(*out_remove_piece_id == 0); // Although does not matter.
+                return false;
+            }
             break;
         }
         case mt_chess_type_pawn:
@@ -602,14 +661,15 @@ static bool is_move_allowed(
         }
     }
 
-    // TODO: Check and return false, if move would result in check of own king!
+    // TODO: Check and return false, if move would result in check of own king
+    //       (do not forget rook's position change on castling)!
 
     if(*out_remove_piece_id == 0)
     {
         *out_remove_piece_id = to_piece_id; // Although unnecessary, here.
     }
     //
-    // Otherwise: Set after valid "en passant" detection.
+    // Otherwise: Already set after valid "en passant" detection.
 
     assert(*out_msg == NULL);
     return true;
@@ -1130,8 +1190,6 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
         return false;
     }
     
-    // TODO: Actually move both pieces during castling.
-    
     s_data->board[piece_board_index] = 0;
     
     int const to_board_index = ((int)mt_chess_col_h + 1) * to.row + to.col;
@@ -1151,6 +1209,8 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
 
     s_data->board[to_board_index] = piece->id;
     
+    // TODO: Also move rook, if castling move detected!
+
     // Log:
     //
     {

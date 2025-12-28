@@ -262,12 +262,24 @@ static bool is_move_allowed_king(
             return false;
         }
 
-        assert(horiz_dist_val == -2 || horiz_dist_val == 2);
+        if(horiz_dist_val == 2)
+        {
+            // Kingside castling attempt.
+
+            // TODO: Implement!
+        }
+        else
+        {
+            // Queenside castling attempt.
+            assert(horiz_dist_val == -2);
+
+            // TODO: Implement!
+        }
 
         // TODO:
         // - Is the to-square (of the king) empty?
         // - Is the square the king crosses empty?
-        // - On queenside castling, is the square B1 empty?
+        // - On queenside castling, is the square of file B empty?
         // - Is the king not attacked on the from-square?
         // - Is the square the king crosses not attacked?
         // - Is to-square not attacked?

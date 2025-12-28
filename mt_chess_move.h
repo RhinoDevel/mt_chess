@@ -13,7 +13,14 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_pos.h"
 
-struct mt_chess_move // TODO: Castling needs to be supported, should be a single "move" with two pieces!
+/**
+ * - Castling must be detected implicitly by the piece being a king and the move
+ *   being a king-castling move.
+ * 
+ * - "En passant" must be detected implicitly by the piece being a pawn and the
+ *   move being a pawn-"en passant" move.
+ */
+struct mt_chess_move
 {
     // Must be a deep-copy, because of possible pawn promotion after this move.
     struct mt_chess_piece piece;
@@ -23,5 +30,16 @@ struct mt_chess_move // TODO: Castling needs to be supported, should be a single
 };
 
 void mt_chess_move_invalidate(struct mt_chess_move * const move);
+
+/**
+ * - Detects castling and applies additional move of the rook implicitly.
+ * - Detects "en passant" and removes other pawn automatically.
+ * - Does no error handling/detection! Assumes, given move is pseudo-possible
+ *   [meaning: Move must have been validated by mt_chess/is_move_allowed(), but
+ *    we are ignoring check, check-mate and pinning rules that may forbid this
+ *    move, here].
+ */
+void mt_chess_move_apply(
+    struct mt_chess_move const * const move, uint8_t * const board);
 
 #endif //MT_CHESS_MOVE

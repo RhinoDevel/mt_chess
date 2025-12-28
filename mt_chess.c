@@ -262,9 +262,12 @@ static bool is_move_allowed_king(
             return false;
         }
 
+        assert(horiz_dist_val == -2 || horiz_dist_val == 2);
+
         // TODO:
         // - Is the to-square (of the king) empty?
         // - Is the square the king crosses empty?
+        // - On queenside castling, is the square B1 empty?
         // - Is the king not attacked on the from-square?
         // - Is the square the king crosses not attacked?
         // - Is to-square not attacked?
@@ -272,6 +275,9 @@ static bool is_move_allowed_king(
         assert(false); // Not implemented, yet!
         *out_msg = "CASTLING-CHECK IS NOT IMPLEMENTED, YET!";
         return false;
+
+        assert(*out_msg == NULL);
+        return true;
     }
 
     // NOT castling.

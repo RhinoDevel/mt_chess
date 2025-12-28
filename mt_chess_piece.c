@@ -18,7 +18,7 @@
 #include "mt_chess_type.h"
 
 int mt_chess_piece_get_index(
-        struct mt_chess_piece * const pieces, uint8_t const id)
+        struct mt_chess_piece const * const pieces, uint8_t const id)
 {
     assert(pieces != NULL);
     // Also assuming that array the pointer points to has 2 x 2 x 8 items.

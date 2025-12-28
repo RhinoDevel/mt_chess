@@ -21,7 +21,7 @@ struct mt_chess_piece // Not just an enum., e.g., because of pawn promotion.
 };
 
 int mt_chess_piece_get_index(
-        struct mt_chess_piece * const pieces, uint8_t const id);
+        struct mt_chess_piece const * const pieces, uint8_t const id);
 
 void mt_chess_piece_init(struct mt_chess_piece * const pieces);
 

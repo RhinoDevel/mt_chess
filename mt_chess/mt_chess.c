@@ -38,7 +38,7 @@
 static char const s_cc_color_fg[] =
     "\e[30m";
 static char const s_cc_color_bg[][5 + 1] = {
-    "\e[47m", // mt_chess_color_white
+    MT_CC_COLOR_BG_WHITE, // mt_chess_color_white
     MT_CC_COLOR_BG_MAGENTA // mt_chess_color_black
 };
 static size_t const s_cc_color_len = sizeof s_cc_color_fg;
@@ -65,6 +65,13 @@ static char const unicode_piece[2][6][4] = {
     }
 };
 static size_t const s_unicode_len = sizeof unicode_piece[0][0];
+
+#define MT_BOARD_AS_STR_ASCII_ROWS 18
+#define MT_BOARD_AS_STR_ASCII_COLUMNS (51 + 1) // Incl. newlines.
+
+// Incl. 0-termination:
+#define MT_BOARD_AS_STR_ASCII_CHARS \
+    (MT_BOARD_AS_STR_ASCII_ROWS * MT_BOARD_AS_STR_ASCII_COLUMNS + 1)
 
 static struct mt_chess_data * s_data = NULL;
 
@@ -140,8 +147,10 @@ static bool is_move_allowed_king(
                 from->row * ((int)mt_chess_col_h + 1) + from->col;
         assert(0 <= board_index_king && board_index_king < 8 * 8);
 
+        uint8_t const piece_id_king = s_data->board[board_index_king];
+
         int const piece_index_king = mt_chess_piece_get_index(
-                s_data->pieces, board_index_king);
+                s_data->pieces, piece_id_king);
 
         struct mt_chess_piece const * const piece_king =
             &s_data->pieces[piece_index_king];
@@ -871,7 +880,7 @@ static int str_unicode_add_square(
 
     // Add control code to set the square's color:
     snprintf(dest + ret_val, s_cc_color_len, s_cc_color_bg[(int)square_color]);
-    ret_val += s_cc_color_len - 1;
+    ret_val += (int)s_cc_color_len - 1;
 
     // Add first character of square:
     if(piece == NULL)
@@ -885,7 +894,7 @@ static int str_unicode_add_square(
             dest + ret_val,
             s_unicode_len,
             unicode_piece[piece->color][piece->type]);
-        ret_val += s_unicode_len - 1;
+        ret_val += (int)s_unicode_len - 1;
     }
 
     // Add second character of the square:
@@ -913,7 +922,7 @@ static int str_unicode_add_rank(int const rank, char * const dest)
 
     // Add foreground color control code:
     snprintf(dest + ret_val, s_cc_color_len, s_cc_color_fg);
-    ret_val += s_cc_color_len - 1;
+    ret_val += (int)s_cc_color_len - 1;
 
     enum mt_chess_color const first_square_color =
             rank % 2 == 0 ? mt_chess_color_white : mt_chess_color_black;
@@ -931,8 +940,7 @@ static int str_unicode_add_rank(int const rank, char * const dest)
 
         int const board_index = row_offset + col;
         assert(board_index < 8 * 8);
-        int const piece_id = s_data->board[board_index];
-        int piece_index = -1;
+        uint8_t const piece_id = s_data->board[board_index];
         struct mt_chess_piece const * piece = NULL;
 
         if(piece_id != 0)
@@ -951,7 +959,7 @@ static int str_unicode_add_rank(int const rank, char * const dest)
     
     // Add reset control code:
     snprintf(dest + ret_val, s_cc_reset_len, s_cc_reset);
-    ret_val += s_cc_reset_len - 1;
+    ret_val += (int)s_cc_reset_len - 1;
 
     // Newline:
     dest[ret_val] = '\n';
@@ -985,17 +993,17 @@ static char* create_board_as_str_unicode(void)
     int const max_chars = // Hard-coded [e.g. see str_unicode_add_square()].
         8 * ( // Rows (ranks) of the board (8, 7, 6, 5, 4, 3, 2 and 1).
                 1 + 1 // Row number and space.
-                    + s_cc_color_len - 1 // Forground color control code.
+                    + (int)s_cc_color_len - 1 // Forground color control code.
                     + 8 * ( // The squares of the row.
-                            s_cc_color_len - 1 // Background color control code.
+                        (int)s_cc_color_len - 1 // Background color ctrl. code.
                             
                             // This allows a piece on ALL squares at once, which
                             // is probably never needed (in chess):
-                            + s_unicode_len - 1 // As if there is a piece.
+                            +(int)s_unicode_len - 1 // As if there is a piece.
 
                             + 1 // Second (always empty) square character.
                         )
-                    + s_cc_reset_len - 1 // Reset control code per row.
+                    + (int)s_cc_reset_len - 1 // Reset control code per row.
                     + 1 // Trailing newline per row.
             )
             + (18 + 1) // Bottom row (showing a, b, c, d, e, f, g and h).
@@ -1062,20 +1070,18 @@ static char* create_board_as_str_ascii(void)
     // 1 | w_r | w_n | w_b | w_q | w_k | w_b | w_n | w_r |\n   15 15/2 = 7; 8 - 7 = 1
     //   ------------------------------------------------|\n   16
     //      a     b     c     d     e     f     g     h   \n\0 17
-    
-    static int const rows = 18;
-    static int const columns = 51 + 1; // Incl. newlines.
-    static int const chars = rows * columns + 1; // Incl. 0-termination.
-    char * const ret_val = (char*)malloc((size_t)chars * sizeof *ret_val);
+
+    char * const ret_val = (char*)malloc(
+        MT_BOARD_AS_STR_ASCII_CHARS * sizeof *ret_val);
     
     assert(ret_val != NULL);
     
-    for(int row = 0; row < rows; ++row)
+    for(int row = 0; row < MT_BOARD_AS_STR_ASCII_ROWS; ++row)
     {
-        int const row_offset = row * columns;
+        int const row_offset = row * MT_BOARD_AS_STR_ASCII_COLUMNS;
         bool const is_sep = row % 2 == 0;
         
-        for(int col = 0; col < columns; ++col)
+        for(int col = 0; col < MT_BOARD_AS_STR_ASCII_COLUMNS; ++col)
         {
             int const col_offset = row_offset + col;
             
@@ -1086,7 +1092,7 @@ static char* create_board_as_str_ascii(void)
                     ret_val[col_offset] = ' ';
                     continue;
                 }
-                if(col + 1 < columns)
+                if(col + 1 < MT_BOARD_AS_STR_ASCII_COLUMNS)
                 {
                     ret_val[col_offset] = '-';
                     continue;
@@ -1095,7 +1101,7 @@ static char* create_board_as_str_ascii(void)
                 continue;
             }
             
-            if(row + 1 == rows)
+            if(row + 1 == MT_BOARD_AS_STR_ASCII_ROWS)
             {
                 int const buf = col - 5;
                 
@@ -1104,7 +1110,7 @@ static char* create_board_as_str_ascii(void)
                     ret_val[col_offset] = (char)((int)'a' + buf / 6);
                     continue;
                 }
-                if(col + 1 < columns)
+                if(col + 1 < MT_BOARD_AS_STR_ASCII_COLUMNS)
                 {
                     ret_val[col_offset] = ' ';
                     continue;
@@ -1136,7 +1142,7 @@ static char* create_board_as_str_ascii(void)
                 continue;
             }
             
-            if(3 <= col && col < columns - 2)
+            if(3 <= col && col < MT_BOARD_AS_STR_ASCII_COLUMNS - 2)
             {
                 if((col - 2) % 6 == 0)
                 {
@@ -1259,7 +1265,7 @@ static char* create_board_as_str_ascii(void)
                 continue;
             }
             
-            if(col == columns - 2)
+            if(col == MT_BOARD_AS_STR_ASCII_COLUMNS - 2)
             {
                 ret_val[col_offset] = '|';
                 continue;
@@ -1268,7 +1274,7 @@ static char* create_board_as_str_ascii(void)
         }
     }
     
-    ret_val[chars - 1] = '\0';
+    ret_val[MT_BOARD_AS_STR_ASCII_CHARS - 1] = '\0';
     
     return ret_val;
 }

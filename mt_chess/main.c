@@ -1,4 +1,4 @@
-
+﻿
 // Marcel Timm, RhinoDevel, 2025dec21
 
 #ifdef __cplusplus
@@ -11,12 +11,20 @@
     #include <assert.h>
 #endif //__cplusplus
 
+// Library is neither exported, nor imported. Code is directly compiled-in:
+//#define MT_EXPORT_CHESS
+//#define MT_IMPORT_CHESS
+
 #include "mt_chess.h"
+
+#ifdef _WIN32
+    #include <windows.h> // For SetConsoleOutputCP().
+#endif //_WIN32
 
 /**
  * - mt_chess must have been initialized via mt_chess_reinit().
  */
-static void print_board()
+static void print_board(void)
 {
     char * const board_str = mt_chess_create_board_as_str(true);
     
@@ -64,6 +72,10 @@ static bool read_pos(char * const out_file, char * const out_rank)
 
 int main(void)
 {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+#endif //_WIN32
+
     mt_chess_reinit();
     
     do

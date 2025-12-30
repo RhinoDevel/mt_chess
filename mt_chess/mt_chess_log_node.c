@@ -33,7 +33,7 @@ void mt_chess_log_node_free(struct mt_chess_log_node * const node)
     }
 }
 
-struct mt_chess_log_node * mt_chess_log_node_create()
+struct mt_chess_log_node * mt_chess_log_node_create(void)
 {
     struct mt_chess_log_node * const ret_val =
         (struct mt_chess_log_node *)malloc(sizeof *ret_val);

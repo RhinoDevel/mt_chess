@@ -45,6 +45,6 @@ void mt_chess_data_free(struct mt_chess_data * const data);
  * - Free via mt_chess_data_free() after usage.
  * - Just does nothing, if NULL given.
  */
-struct mt_chess_data * mt_chess_data_create();
+struct mt_chess_data * mt_chess_data_create(void);
 
 #endif //MT_CHESS_DATA

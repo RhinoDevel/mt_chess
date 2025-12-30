@@ -33,7 +33,7 @@ void mt_chess_log_node_free(struct mt_chess_log_node * const node);
  * - Caller takes ownership of returned node.
  * - Return value must be freed after use with mt_chess_log_node_free().
  */
-struct mt_chess_log_node * mt_chess_log_node_create();
+struct mt_chess_log_node * mt_chess_log_node_create(void);
 
 /**
  * - Returns NULL, if NULL given.

@@ -76,10 +76,8 @@ void mt_chess_move_apply(
                 move->to/*from*/.row * ((int)mt_chess_col_h + 1) + rook_to_col;
             assert(0 <= rook_to_index && rook_to_index < 8 * 8);
 
-            uint8_t const rook_piece_id = board[rook_from_index];
-
-            assert(rook_piece_id != 0); // Kind of a parity test..
-            assert(board[rook_to_index] == 0);
+            assert(board[rook_from_index] != 0); // Kind of a parity test..
+            assert(board[board[rook_from_index]] == 0);
 
             // Move rook:
             board[rook_from_index] = 0;

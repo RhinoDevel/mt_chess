@@ -181,7 +181,7 @@ void mt_chess_data_free(struct mt_chess_data * const data)
     free(data);
 }
 
-struct mt_chess_data * mt_chess_data_create()
+struct mt_chess_data * mt_chess_data_create(void)
 {
     struct mt_chess_data * const ret_val =
         (struct mt_chess_data *)malloc(sizeof *ret_val);

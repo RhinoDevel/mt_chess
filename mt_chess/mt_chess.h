@@ -8,7 +8,11 @@
 	#ifdef MT_EXPORT_CHESS
 		#define MT_EXPORT_CHESS_API __declspec(dllexport)
 	#else
-		#define MT_EXPORT_CHESS_API __declspec(dllimport)
+        #ifdef MT_IMPORT_CHESS
+			#define MT_EXPORT_CHESS_API __declspec(dllimport)
+		#else
+			#define MT_EXPORT_CHESS_API
+		#endif //MT_IMPORT_CHESS
 	#endif //MT_EXPORT_CHESS
 #else //_WIN32
 	#define MT_EXPORT_CHESS_API

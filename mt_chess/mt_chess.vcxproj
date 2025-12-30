@@ -29,6 +29,7 @@
     <ClInclude Include="mt_chess_piece.h" />
     <ClInclude Include="mt_chess_pos.h" />
     <ClInclude Include="mt_chess_row.h" />
+    <ClInclude Include="mt_chess_str.h" />
     <ClInclude Include="mt_chess_type.h" />
   </ItemGroup>
   <ItemGroup>
@@ -40,6 +41,7 @@
     <ClCompile Include="mt_chess_move.c" />
     <ClCompile Include="mt_chess_piece.c" />
     <ClCompile Include="mt_chess_pos.c" />
+    <ClCompile Include="mt_chess_str.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

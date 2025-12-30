@@ -48,6 +48,9 @@
     <ClInclude Include="mt_chess_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mt_chess_str.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -72,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mt_chess_pos.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mt_chess_str.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,6 +12,10 @@
 
 #include "mt_chess_move.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 struct mt_chess_log_node
 {
     struct mt_chess_log_node * last;
@@ -48,5 +52,8 @@ struct mt_chess_log_node * mt_chess_log_node_get_latest(
 struct mt_chess_log_node * mt_chess_log_node_get_latest_of_piece(
     struct mt_chess_log_node * const node, uint8_t const piece_id);
 
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 #endif //MT_CHESS_LOG_NODE

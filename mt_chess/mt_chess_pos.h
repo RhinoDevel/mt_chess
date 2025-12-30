@@ -12,6 +12,10 @@
     #include <stdbool.h>
 #endif //__cplusplus
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 struct mt_chess_pos
 {
     uint8_t col; // Holds value of enumeration mt_chess_col.
@@ -26,5 +30,9 @@ bool mt_chess_pos_are_equal(
     struct mt_chess_pos const * const a, struct mt_chess_pos const * const b);
 
 struct mt_chess_pos mt_chess_pos_get(char const file, char const rank);
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 #endif //MT_CHESS_POS

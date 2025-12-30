@@ -13,6 +13,10 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_pos.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 /**
  * - Castling must be detected implicitly by the piece being a king and the move
  *   being a king-castling move.
@@ -41,5 +45,9 @@ void mt_chess_move_invalidate(struct mt_chess_move * const move);
  */
 void mt_chess_move_apply(
     struct mt_chess_move const * const move, uint8_t * const board);
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 #endif //MT_CHESS_MOVE

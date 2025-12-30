@@ -16,6 +16,10 @@
 #include "mt_chess_col.h"
 #include "mt_chess_color.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 struct mt_chess_data
 {
     struct mt_chess_piece pieces[2 * 2 * ((int)mt_chess_col_h + 1)];
@@ -47,4 +51,9 @@ void mt_chess_data_free(struct mt_chess_data * const data);
  */
 struct mt_chess_data * mt_chess_data_create(void);
 
+#ifdef __cplusplus
+}
+#endif //__cplusplus
+
 #endif //MT_CHESS_DATA
+

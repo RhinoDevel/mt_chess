@@ -13,6 +13,10 @@
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 struct mt_chess_piece // Not just an enum., e.g., because of pawn promotion.
 {
     enum mt_chess_color color;
@@ -26,5 +30,9 @@ int mt_chess_piece_get_index(
 void mt_chess_piece_init(struct mt_chess_piece * const pieces);
 
 void mt_chess_piece_invalidate(struct mt_chess_piece * const piece);
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
 
 #endif //MT_CHESS_PIECE

@@ -16,29 +16,33 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_data.h"
 
-// TODO: These control codes are NOT compatible with (e.g.) Windows:
+#ifdef _WIN32
+    #define MT_CC "\033"
+#else //_WIN32
+    #define MT_CC "\e"
+#endif //_WIN32
+
+#define MT_CC_COLOR_BG_BLACK (MT_CC "[40m")
+#define MT_CC_COLOR_BG_RED (MT_CC "[41m")
+#define MT_CC_COLOR_BG_GREEN (MT_CC "[42m")
+#define MT_CC_COLOR_BG_YELLOW (MT_CC "[43m")
+#define MT_CC_COLOR_BG_BLUE (MT_CC "[44m")
+#define MT_CC_COLOR_BG_MAGENTA (MT_CC "[45m")
+#define MT_CC_COLOR_BG_CYAN (MT_CC "[46m")
+#define MT_CC_COLOR_BG_WHITE (MT_CC "[47m")
 //
-#define MT_CC_COLOR_BG_BLACK "\e[40m"
-#define MT_CC_COLOR_BG_RED "\e[41m"
-#define MT_CC_COLOR_BG_GREEN "\e[42m"
-#define MT_CC_COLOR_BG_YELLOW "\e[43m"
-#define MT_CC_COLOR_BG_BLUE "\e[44m"
-#define MT_CC_COLOR_BG_MAGENTA "\e[45m"
-#define MT_CC_COLOR_BG_CYAN "\e[46m"
-#define MT_CC_COLOR_BG_WHITE "\e[47m"
+static char const s_cc_color_fg[] = (MT_CC "[30m");
 //
-static char const s_cc_color_fg[] = "\e[30m";
-//
-static char const s_cc_color_bg[][5 + 1] = {
+static char const s_cc_color_bg[][5 + 1] = { // <- Hard-coded
     MT_CC_COLOR_BG_WHITE, // mt_chess_color_white
     MT_CC_COLOR_BG_MAGENTA // mt_chess_color_black
 };
 static size_t const s_cc_color_len = sizeof s_cc_color_fg;
 //
-static char const s_cc_reset[] = "\e[0m";
+static char const s_cc_reset[] = (MT_CC "[0m");
 static size_t const s_cc_reset_len = sizeof s_cc_reset;
 
-static char const unicode_piece[2][6][4] = {
+static char const unicode_piece[2][6][4] = { // <- Hard-coded
     { // mt_chess_color_white
         "\u2654", // mt_chess_type_king
         "\u2659", // mt_chess_type_pawn

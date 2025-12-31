@@ -16,12 +16,8 @@
 #include "mt_chess_piece.h"
 #include "mt_chess_data.h"
 
-#ifdef _WIN32
-    #define MT_CC "\033"
-#else //_WIN32
-    #define MT_CC "\e"
-#endif //_WIN32
-
+#define MT_CC "\033"
+//
 #define MT_CC_COLOR_BG_BLACK (MT_CC "[40m")
 #define MT_CC_COLOR_BG_RED (MT_CC "[41m")
 #define MT_CC_COLOR_BG_GREEN (MT_CC "[42m")

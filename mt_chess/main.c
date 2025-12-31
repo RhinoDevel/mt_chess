@@ -117,6 +117,7 @@ int main(void)
             printf("Move failed: \"%s\"\n", msg);
             continue;
         }
+        printf("\033[H\033[J"); // Clears screen & moves cursor to the top-left.
         assert(msg == NULL);
         printf("Move succeeded.\n");
     }while(true);

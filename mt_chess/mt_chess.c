@@ -341,46 +341,48 @@ static bool is_move_allowed_bishop(
 
     assert(*out_msg == NULL);
 
-    uint8_t col = 0;
-    uint8_t last_col = 0;
-    
-    uint8_t row = 0;
-    uint8_t last_row = 0;
+    int col = 0;
+    int row = 0;
 
-    if(from->col < to->col)
-    {
-        col = from->col + 1;
-        last_col = to->col - 1;
-    }
-    else
-    {
-        assert(to->col <= from->col);
-        col = to->col + 1;
-        last_col = from->col - 1;
-    }
+    int const horiz_dist = abs(to->col - from->col);
+    int const vert_dist = abs(to->row - from->row);
 
-    if(from->row < to->row)
-    {
-        row = from->row + 1;
-        last_row = to->row - 1;
-    }
-    else
-    {
-        assert(to->row <= from->row);
-        row = to->row + 1;
-        last_row = from->row - 1;
-    }
-
-    if(last_row - row != last_col - col)
+    if(horiz_dist != vert_dist)
     {
         *out_msg = "A bishop can move diagonally, only.";
         return false;
     }
 
-    while(row <= last_row)
+    if(horiz_dist == 1)
     {
-        assert(col <= last_col);
+        // That there is at most one of the opponent's pieces on the destination
+        // square must be checked elsewhere.
 
+        assert(vert_dist == 1);
+
+        assert(*out_msg == NULL);
+        return true;
+    }
+
+    int const col_add = from->col < to->col ? 1 : -1;
+    int const row_add = from->row < to->row ? 1 : -1;
+
+    int const first_col = from->col + col_add;
+    int const first_row = from->row + row_add;
+
+    assert(0 <= first_col && first_col <= 7);
+    assert(0 <= first_row && first_row <= 7);
+
+    int const last_col = first_col + col_add * (horiz_dist - 2);
+    int const last_row = first_row + row_add * (vert_dist - 2);
+
+    assert(0 <= last_col && last_col <= 7);
+    assert(0 <= last_row && last_row <= 7);
+
+    col = first_col;
+    row = first_row;
+    do
+    {
         int const row_offset = ((int)mt_chess_col_h + 1) * row;
         int const board_index = row_offset + col;
         assert(0 <= board_index && board_index < 8 * 8);
@@ -391,10 +393,15 @@ static bool is_move_allowed_bishop(
             return false;
         }
 
-        ++row;
-        ++col;
-    }
-    assert(last_col + 1 == col);
+        if(row == last_row)
+        {
+            assert(col == last_col);
+            break; // Done
+        }
+
+        row += row_add;
+        col += col_add;
+    } while(true);
 
     assert(*out_msg == NULL);
     return true;

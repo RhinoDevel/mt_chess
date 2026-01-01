@@ -21,6 +21,11 @@
     #include <windows.h> // For SetConsoleOutputCP().
 #endif //_WIN32
 
+static void clear_console_and_to_top_left(void)
+{
+    printf("\033[H\033[J");
+}
+
 /**
  * - mt_chess must have been initialized via mt_chess_reinit().
  */
@@ -72,6 +77,15 @@ static bool read_pos(char * const out_file, char * const out_rank)
 
 int main(void)
 {
+    bool new_game = true;
+    char const * move_msg = NULL;
+    bool move_succeeded = false;
+
+    char from_file = '\0';
+    char from_rank = '\0';
+    char to_file = '\0';
+    char to_rank = '\0';
+
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 #endif //_WIN32
@@ -80,15 +94,36 @@ int main(void)
     
     do
     {
-        char from_file = '\0';
-        char from_rank = '\0';
-        char to_file = '\0';
-        char to_rank = '\0';
-     
-        char const * msg = NULL;
-        
+        clear_console_and_to_top_left();
+        if(new_game)
+        {
+            assert(move_msg == NULL);
+            assert(!move_succeeded);
+            printf("New game.\n");
+            new_game = false;
+        }
+        else
+        {
+            if(move_succeeded)
+            {
+                assert(move_msg == NULL);
+                printf(
+                    "Last move: %c%c to %c%c\n",
+                    from_file, from_rank, to_file, to_rank);
+            }
+            else
+            {
+                assert(move_msg != NULL);
+                printf(
+                    "%c%c to %c%c failed: \"%s\"\n",
+                    from_file, from_rank, to_file, to_rank,
+                    move_msg);
+                move_msg = NULL;
+            }
+            move_succeeded = false;
+        }
         print_board();
-        
+
         do
         {
             printf("From: ");
@@ -111,15 +146,14 @@ int main(void)
             break;
         }while(true);
         
-        if(!mt_chess_try_move(from_file, from_rank, to_file, to_rank, &msg))
+        if(!mt_chess_try_move(from_file, from_rank, to_file, to_rank, &move_msg))
         {
-            assert(msg != NULL);
-            printf("Move failed: \"%s\"\n", msg);
+            assert(move_msg != NULL);
+            assert(!move_succeeded);
             continue;
         }
-        printf("\033[H\033[J"); // Clears screen & moves cursor to the top-left.
-        assert(msg == NULL);
-        printf("Move succeeded.\n");
+        assert(move_msg == NULL);
+        move_succeeded = true;
     }while(true);
     
     mt_chess_deinit();

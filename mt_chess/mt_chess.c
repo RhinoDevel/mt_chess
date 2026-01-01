@@ -139,8 +139,7 @@ static bool is_move_allowed_king(
                 ? rook_col_short // Move to kingside.
                 : rook_col_long; // Move to queenside.
 
-        int const board_index_rook =
-                rook_row_offset * ((int)mt_chess_col_h + 1) + rook_col;
+        int const board_index_rook = rook_row_offset + rook_col;
         assert(0 <= board_index_rook && board_index_rook < 8 * 8);
 
         // Get what may be the rook's piece ID, from the board:

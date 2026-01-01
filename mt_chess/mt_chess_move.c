@@ -77,11 +77,12 @@ void mt_chess_move_apply(
             assert(0 <= rook_to_index && rook_to_index < 8 * 8);
 
             assert(board[rook_from_index] != 0); // Kind of a parity test..
-            assert(board[board[rook_from_index]] == 0);
+            assert(board[rook_to_index] == 0);
 
             // Move rook:
+            board[rook_to_index] = board[rook_from_index];
             board[rook_from_index] = 0;
-            board[rook_to_index] = move->piece.id;
+            
         }
     }
     else 

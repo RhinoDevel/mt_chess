@@ -91,23 +91,26 @@ void mt_chess_move_apply(
         {
             if(move->from.col != move->to.col)
             {
-                // Assuming "en passant".
+                if(board[to_index] == 0) // (not updated, yet)
+                {
+                    // Assuming "en passant".
 
-                assert(board[to_index] == 0); // (not updated, yet)
+                    uint8_t const opponent_pawn_row = move->from.row;
+                    uint8_t const opponent_pawn_col = move->to.col;
 
-                uint8_t const opponent_pawn_row = move->from.row;
-                uint8_t const opponent_pawn_col = move->to.col;
-
-                int const opponent_pawn_index =
+                    int const opponent_pawn_index =
                         opponent_pawn_row * ((int)mt_chess_col_h + 1)
-                            + opponent_pawn_col;
-                assert(0 <= opponent_pawn_index && opponent_pawn_index < 8 * 8);
+                        + opponent_pawn_col;
+                    assert(0 <= opponent_pawn_index && opponent_pawn_index < 8 * 8);
 
-                // Kind of a parity test..
-                assert(board[opponent_pawn_index] != 0);
-                
-                // Remove opponent's pawn from board:
-                board[opponent_pawn_index] = 0;
+                    // Kind of a parity test..
+                    assert(board[opponent_pawn_index] != 0);
+
+                    // Remove opponent's pawn from board:
+                    board[opponent_pawn_index] = 0;
+                }
+                //
+                // Otherwise: Standard catch by a pawn.
             }
         }
     }

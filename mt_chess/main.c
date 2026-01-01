@@ -146,7 +146,8 @@ int main(void)
             break;
         }while(true);
         
-        if(!mt_chess_try_move(from_file, from_rank, to_file, to_rank, &move_msg))
+        if(!mt_chess_try_move(
+                from_file, from_rank, to_file, to_rank, &move_msg))
         {
             assert(move_msg != NULL);
             assert(!move_succeeded);

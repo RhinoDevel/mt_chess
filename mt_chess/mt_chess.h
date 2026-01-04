@@ -1,6 +1,18 @@
 
 // Marcel Timm, RhinoDevel, 2025dec21
 
+// TODO: Some rules to implement:
+//
+// - Game over after each player took n (50?) turns without any catched piece.
+// - Game over without check, but with a situation where the king cannot move,
+//   because it is pinned.
+// - Game over, if one player has a king, only and the other just a king and
+//   at most two knights or two bishops.
+// - See details, e.g. here:
+//   https://rcc.fide.com/fide-laws-of-chess_fulltexthtml/
+//   or
+//   https://rcc.fide.com/2023-laws-of-chess/
+
 #ifndef MT_CHESS
 #define MT_CHESS
 

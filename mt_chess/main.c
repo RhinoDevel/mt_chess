@@ -36,6 +36,19 @@ static void print_board(void)
     printf("%s", board_str);
     
     mt_chess_free(board_str);
+
+    // TODO: Debugging:
+    //
+#ifndef NDEBUG
+    {
+        char * const attack_map_str = mt_chess_create_attack_map_as_str(
+            true);
+
+        printf("%s", attack_map_str);
+
+        mt_chess_free(attack_map_str);
+    }
+#endif //NDEBUG
 }
 
 static bool read_pos(char * const out_file, char * const out_rank)

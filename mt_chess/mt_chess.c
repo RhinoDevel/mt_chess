@@ -24,6 +24,7 @@
 #include "mt_chess_log_node.h"
 #include "mt_chess_move.h"
 #include "mt_chess_str.h"
+#include "mt_chess_attack.h"
 
 static struct mt_chess_data * s_data = NULL;
 
@@ -287,7 +288,6 @@ static bool is_move_allowed_king(
     // NOT castling.
 
     assert(vert_dist <= 1 && horiz_dist <= 1);
-    assert((vert_dist == 0) != (horiz_dist == 0));
 
     assert(*out_msg == NULL);
     return true;
@@ -863,6 +863,25 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_board_as_str(
         return NULL; // Not initialized, yet.
     }
     return mt_chess_str_create_board(s_data, unicode);
+}
+
+MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_attack_map_as_str(
+    bool const unicode)
+{
+    uint8_t attack_map[8 * 8];
+
+    if(s_data == NULL)
+    {
+        return NULL; // Not initialized, yet.
+    }
+
+    mt_chess_attack_update(
+        s_data->pieces,
+        s_data->board,
+        (enum mt_chess_color)(1 - (int)s_data->turn),
+        attack_map);
+
+    return mt_chess_str_create_attack_map(attack_map, unicode);
 }
 
 MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(

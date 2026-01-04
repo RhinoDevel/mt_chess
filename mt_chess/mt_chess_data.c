@@ -190,16 +190,6 @@ struct mt_chess_data * mt_chess_data_create(void)
     
     mt_chess_piece_init(ret_val->pieces);
     init_board(ret_val->pieces, ret_val->board);
-    mt_chess_attack_update(
-        ret_val->pieces,
-        ret_val->board,
-        mt_chess_color_black, // <- Initial attacker.
-        ret_val->attacked_by_black);
-    mt_chess_attack_update(
-        ret_val->pieces,
-        ret_val->board,
-        mt_chess_color_white,
-        ret_val->attacked_by_white);
     ret_val->turn = mt_chess_color_white; // <- Has the first turn.
     ret_val->log = NULL;
     

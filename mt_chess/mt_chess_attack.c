@@ -20,22 +20,64 @@
 #include "mt_chess_col.h"
 #include "mt_chess_type.h"
 
+static void add_to_attack_map_king(
+    struct mt_chess_piece const * const piece,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    assert(piece->type == mt_chess_type_king);
+    
+    int const row_min = piece_row == 0 
+            ? 0 : piece_row - 1;
+    int const row_max = piece_row == (int)mt_chess_row_1
+            ? (int)mt_chess_row_1 : piece_row + 1;
+
+    int const col_min = piece_col == 0
+            ? 0 : piece_col - 1;
+    int const col_max = piece_col == (int)mt_chess_col_h
+            ? (int)mt_chess_col_h : piece_col + 1;
+
+    for(int row = row_min; row <= row_max; ++row)
+    {
+        int const row_offset = row * ((int)mt_chess_row_1 + 1);
+
+        for(int col = col_min; col <= col_max; ++col)
+        {
+            int const cur_index = row_offset + col;
+
+            if(cur_index == index)
+            {
+                assert(row == piece_row && col == piece_col);
+                assert(attack_map[cur_index] == 0);
+                continue; // Ignore king's position.
+            }
+            assert(!(row == piece_row && col == piece_col));
+            attack_map[cur_index] = 1;
+        }
+    }
+}
+
 static void add_to_attack_map(
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
+    int const index,
     uint8_t * const attack_map)
 {
     assert(piece != NULL);
     assert(0 <= piece_row && piece_row <= (int)mt_chess_row_1);
     assert(0 <= piece_col && piece_col <= (int)mt_chess_col_h);
+    assert(0 <= index && index < 8 * 8);
     assert(attack_map != NULL);
 
     switch(piece->type)
     {
         case mt_chess_type_king:
         {
-            // TODO: Implement!
+            add_to_attack_map_king(
+                piece, piece_row, piece_col, index, attack_map);
             return;
         }
         case mt_chess_type_pawn:
@@ -121,7 +163,7 @@ void mt_chess_attack_update(
 
             // The piece belongs to the attacker.
 
-            add_to_attack_map(piece, row, col, attack_map);
+            add_to_attack_map(piece, row, col, index, attack_map);
         }
     }
 }

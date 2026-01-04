@@ -20,6 +20,50 @@
 #include "mt_chess_col.h"
 #include "mt_chess_type.h"
 
+/**
+ * - Under attack, if empty square or occupied by defending player.
+ * - Ray is stopped, if occupied by any kind of piece.
+ * 
+ * - Additionally returns, if the ray is stopped at current index or not.
+ */
+static bool ray_update_attack_map(
+    struct mt_chess_piece const * const pieces,
+    struct mt_chess_piece const * const piece, // Attacking piece (ray's src.).
+    int const cur_index, // Board & attack map index of current square in ray.
+    uint8_t const cur_piece_id, // ID of piece at current square (0, if empty).
+    uint8_t * const attack_map)
+{
+    if(attack_map[cur_index] != 0)
+    {
+        // Square is already marked as being attacked.
+        return false; // Ray can continue.
+    }
+
+    // Square is not yet marked as being under attack.
+
+    if(cur_piece_id == 0)
+    {
+        // There is NO piece at current square.
+        attack_map[cur_index] = 1;
+        return false; // The ray is NOT stopped by this (empty) square.
+    }
+
+    // There is some piece at current square.
+
+    int const cur_piece_index = mt_chess_piece_get_index(pieces, cur_piece_id);
+    struct mt_chess_piece const * const cur_piece = pieces + cur_piece_index;
+
+    if(cur_piece->color != piece->color)
+    {
+        // Defending player's piece at current position.
+        attack_map[cur_index] = 1;
+    }
+    //
+    // Otherwise: Attacker's piece at current position. <=> NOT attacked.
+    
+    return true; // The ray is stopped by this square.
+}
+
 static void add_to_attack_map_king(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -49,12 +93,6 @@ static void add_to_attack_map_king(
         {
             int const cur_index = row_offset + col;
 
-            if(attack_map[cur_index] != 0)
-            {
-                // Square is already marked as being under attack.
-                continue;
-            }
-
             if(cur_index == index)
             {
                 assert(row == piece_row && col == piece_col);
@@ -63,28 +101,10 @@ static void add_to_attack_map_king(
             }
             assert(!(row == piece_row && col == piece_col));
 
-            if(board[cur_index] == 0)
-            {
-                // Empty square. => Is attacked.
-                attack_map[cur_index] = 1;
-                continue;
-            }
-
             uint8_t const cur_piece_id = board[cur_index];
-            int const cur_piece_index = mt_chess_piece_get_index(
-                pieces, cur_piece_id);
-            struct mt_chess_piece const * const cur_piece =
-                pieces + cur_piece_index;
 
-            if(piece->color == cur_piece->color)
-            {
-                // A piece belonging to the attacker. => Is NOT attacked.
-                assert(attack_map[cur_index] == 0);
-                continue;
-            }
-
-            // A piece belonging to the defending player. => IS attacked.
-            attack_map[cur_index] = 1;
+            ray_update_attack_map( // Ignoring return value.
+                pieces, piece, cur_index, cur_piece_id, attack_map);
         }
     }
 }
@@ -98,9 +118,93 @@ static void add_to_attack_map_rook(
     int const index,
     uint8_t * const attack_map)
 {
+    assert(attack_map[index] == 0);
     assert(piece->type == mt_chess_type_rook);
 
-    // TODO: Implement!
+    int col = 0;
+    int row = 0;
+
+    // ***********
+    // *** Up: ***
+    // ***********
+
+    row = piece_row;
+    while(0 <= --row)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + piece_col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // *************
+    // *** Down: ***
+    // *************
+
+    row = piece_row;
+    while(++row <= (int)mt_chess_row_1)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + piece_col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // ***
+
+    int const piece_row_offset = piece_row * ((int)mt_chess_col_h + 1);
+
+    // *************
+    // *** Left: ***
+    // *************
+
+    col = piece_col;
+    while(0 <= --col)
+    {
+        int const cur_index = piece_row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // **************
+    // *** Right: ***
+    // **************
+
+    col = piece_col;
+    while(++col <= (int)mt_chess_col_h)
+    {
+        int const cur_index = piece_row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
 }
 
 static void add_to_attack_map(

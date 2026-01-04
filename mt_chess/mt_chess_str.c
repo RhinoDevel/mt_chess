@@ -484,3 +484,28 @@ char* mt_chess_str_create_board(
     }
     return create_board_as_ascii(data);
 }
+
+char* mt_chess_str_create_attack_map(
+    uint8_t const * const attack_map, bool const unicode)
+{
+    assert(attack_map != NULL);
+
+    // Kind of overdone to create temporary data object for this..
+
+    struct mt_chess_data * const d = mt_chess_data_create();
+    assert(d != NULL);
+
+    // TODO: Hard-coded:
+    uint8_t const attacked_piece_id = d->board[1]; // Black knight.
+
+    for(int i = 0; i < 8 * 8; ++i)
+    {
+        d->board[i] = attack_map[i] == 0 ? 0 : attacked_piece_id;
+    }
+
+    char * const ret_val = mt_chess_str_create_board(d, unicode);
+    assert(ret_val != NULL);
+
+    mt_chess_data_free(d);
+    return ret_val;
+}

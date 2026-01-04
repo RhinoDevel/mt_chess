@@ -6,8 +6,10 @@
 
 #ifdef __cplusplus
 	#include <cstdbool>
+	#include <cstdint>
 #else //__cplusplus
     #include <stdbool.h>
+	#include <stdint.h>
 #endif //__cplusplus
 
 #include "mt_chess_data.h"
@@ -21,6 +23,12 @@ extern "C" {
  */
 char* mt_chess_str_create_board(
 	struct mt_chess_data const * const data, bool const unicode);
+
+/**
+ * - Caller takes ownership of return value.
+ */
+char* mt_chess_str_create_attack_map(
+	uint8_t const * const attack_map, bool const unicode);
 
 #ifdef __cplusplus
 }

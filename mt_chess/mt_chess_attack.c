@@ -49,6 +49,12 @@ static void add_to_attack_map_king(
         {
             int const cur_index = row_offset + col;
 
+            if(attack_map[cur_index] != 0)
+            {
+                // Square is already marked as being under attack.
+                continue;
+            }
+
             if(cur_index == index)
             {
                 assert(row == piece_row && col == piece_col);

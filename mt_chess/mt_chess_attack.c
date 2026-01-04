@@ -21,6 +21,8 @@
 #include "mt_chess_type.h"
 
 static void add_to_attack_map_king(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
@@ -54,12 +56,50 @@ static void add_to_attack_map_king(
                 continue; // Ignore king's position.
             }
             assert(!(row == piece_row && col == piece_col));
+
+            if(board[cur_index] == 0)
+            {
+                // Empty square. => Is attacked.
+                attack_map[cur_index] = 1;
+                continue;
+            }
+
+            uint8_t const cur_piece_id = board[cur_index];
+            int const cur_piece_index = mt_chess_piece_get_index(
+                pieces, cur_piece_id);
+            struct mt_chess_piece const * const cur_piece =
+                pieces + cur_piece_index;
+
+            if(piece->color == cur_piece->color)
+            {
+                // A piece belonging to the attacker. => Is NOT attacked.
+                assert(attack_map[cur_index] == 0);
+                continue;
+            }
+
+            // A piece belonging to the defending player. => IS attacked.
             attack_map[cur_index] = 1;
         }
     }
 }
 
+static void add_to_attack_map_rook(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    assert(piece->type == mt_chess_type_rook);
+
+    // TODO: Implement!
+}
+
 static void add_to_attack_map(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
@@ -77,7 +117,7 @@ static void add_to_attack_map(
         case mt_chess_type_king:
         {
             add_to_attack_map_king(
-                piece, piece_row, piece_col, index, attack_map);
+                pieces, board, piece, piece_row, piece_col, index, attack_map);
             return;
         }
         case mt_chess_type_pawn:
@@ -97,7 +137,8 @@ static void add_to_attack_map(
         }
         case mt_chess_type_rook:
         {
-            // TODO: Implement!
+            add_to_attack_map_rook(
+                pieces, board, piece, piece_row, piece_col, index, attack_map);
             return;
         }
         case mt_chess_type_queen:
@@ -163,7 +204,8 @@ void mt_chess_attack_update(
 
             // The piece belongs to the attacker.
 
-            add_to_attack_map(piece, row, col, index, attack_map);
+            add_to_attack_map(
+                pieces, board, piece, row, col, index, attack_map);
         }
     }
 }

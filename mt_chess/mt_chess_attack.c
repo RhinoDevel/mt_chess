@@ -121,7 +121,8 @@ static void add_to_attack_map_bishop(
     uint8_t * const attack_map)
 {
     assert(attack_map[index] == 0);
-    assert(piece->type == mt_chess_type_bishop);
+    assert(piece->type == mt_chess_type_bishop
+        || piece->type == mt_chess_type_queen); // <- Is reused.
 
     int col = 0;
     int row = 0;
@@ -221,7 +222,8 @@ static void add_to_attack_map_rook(
     uint8_t * const attack_map)
 {
     assert(attack_map[index] == 0);
-    assert(piece->type == mt_chess_type_rook);
+    assert(piece->type == mt_chess_type_rook
+        || piece->type == mt_chess_type_queen); // <- Is reused.
 
     int col = 0;
     int row = 0;
@@ -309,6 +311,21 @@ static void add_to_attack_map_rook(
     }
 }
 
+static void add_to_attack_map_queen(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    add_to_attack_map_bishop(
+        pieces, board, piece, piece_row, piece_col, index, attack_map);
+    add_to_attack_map_rook(
+        pieces, board, piece, piece_row, piece_col, index, attack_map);
+}
+
 static void add_to_attack_map(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -356,7 +373,8 @@ static void add_to_attack_map(
         }
         case mt_chess_type_queen:
         {
-            // TODO: Implement!
+            add_to_attack_map_queen(
+                pieces, board, piece, piece_row, piece_col, index, attack_map);
             return;
         }
 

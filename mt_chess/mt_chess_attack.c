@@ -20,6 +20,8 @@
 #include "mt_chess_col.h"
 #include "mt_chess_type.h"
 
+// TODO: Maybe better implement this as macro for performance-improvement!
+//
 /**
  * - Under attack, if empty square or occupied by defending player.
  * - Ray is stopped, if occupied by any kind of piece.
@@ -106,6 +108,106 @@ static void add_to_attack_map_king(
             ray_update_attack_map( // Ignoring return value.
                 pieces, piece, cur_index, cur_piece_id, attack_map);
         }
+    }
+}
+
+static void add_to_attack_map_bishop(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    assert(attack_map[index] == 0);
+    assert(piece->type == mt_chess_type_bishop);
+
+    int col = 0;
+    int row = 0;
+
+    // ****************
+    // *** Up-left: ***
+    // ****************
+
+    row = piece_row;
+    col = piece_col;
+    while(0 <= --row && 0 <= --col)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // *******************
+    // *** Down-right: ***
+    // *******************
+
+    row = piece_row;
+    col = piece_col;
+    while(++row <= (int)mt_chess_row_1 && ++col <= (int)mt_chess_col_h)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // ******************
+    // *** Down-left: ***
+    // ******************
+
+    row = piece_row;
+    col = piece_col;
+    while(++row <= (int)mt_chess_row_1 && 0 <= --col)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
+    }
+
+    // *****************
+    // *** Up-right: ***
+    // *****************
+
+    row = piece_row;
+    col = piece_col;
+    while(0 <= --row && ++col <= (int)mt_chess_col_h)
+    {
+        int const row_offset = row * ((int)mt_chess_col_h + 1);
+        int const cur_index = row_offset + col;
+        uint8_t const cur_piece_id = board[cur_index];
+
+        if(ray_update_attack_map(
+            pieces, piece, cur_index, cur_piece_id, attack_map))
+        {
+            assert(cur_piece_id != 0);
+            break; // Ray is stopped by current square.
+        }
+        assert(cur_piece_id == 0);
     }
 }
 
@@ -242,7 +344,8 @@ static void add_to_attack_map(
         }
         case mt_chess_type_bishop:
         {
-            // TODO: Implement!
+            add_to_attack_map_bishop(
+                pieces, board, piece, piece_row, piece_col, index, attack_map);
             return;
         }
         case mt_chess_type_rook:

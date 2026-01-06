@@ -19,6 +19,9 @@ extern "C" {
 #endif //__cplusplus
 
 /** Update the attack map given, with the player of given color as attacker.
+ * 
+ * - The latest move given is not necessarily the one from the log.
+ *   E.g. for move validation, this would be the move that shall be validated.
  */
 void mt_chess_attack_update(
     struct mt_chess_piece const * const pieces,

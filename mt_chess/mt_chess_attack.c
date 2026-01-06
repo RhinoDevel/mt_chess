@@ -66,6 +66,31 @@ static bool ray_update_attack_map(
     return true; // The ray is stopped by this square.
 }
 
+/**
+ * - It is expected that row and/or column given are invalid (out of bounds).
+ */
+static void row_and_col_update_attack_map(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece, // Attacking piece (ray's src.).
+    int const row,
+    int const col,
+    uint8_t * const attack_map)
+{
+    if(0 <= row && row <= (int)mt_chess_row_1
+        && 0 <= col && col <= (int)mt_chess_col_h)
+    {
+        int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
+
+        ray_update_attack_map( // Ignoring return value, here.
+            pieces,
+            piece,
+            cur_index,
+            board[cur_index],
+            attack_map);
+    }
+}
+
 static void add_to_attack_map_king(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -109,6 +134,48 @@ static void add_to_attack_map_king(
                 pieces, piece, cur_index, cur_piece_id, attack_map);
         }
     }
+}
+
+static void add_to_attack_map_knight(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    assert(attack_map[index] == 0);
+    assert(piece->type == mt_chess_type_knight);
+
+    //   0 1 2 3 4
+    //  -----------
+    // 0| |C| |B| |
+    //  -----------
+    // 1|D| | | |A|
+    //  -----------
+    // 2| | |n| | |
+    //  -----------
+    // 3|E| | | |H|
+    //  -----------
+    // 4| |F| |G| |
+
+    row_and_col_update_attack_map( // A
+        pieces, board, piece, piece_row - 1, piece_col + 2, attack_map);
+    row_and_col_update_attack_map( // B
+        pieces, board, piece, piece_row - 2, piece_col + 1, attack_map);
+    row_and_col_update_attack_map( // C
+        pieces, board, piece, piece_row - 2, piece_col - 1, attack_map);
+    row_and_col_update_attack_map( // D
+        pieces, board, piece, piece_row - 1, piece_col - 2, attack_map);
+    row_and_col_update_attack_map( // E
+        pieces, board, piece, piece_row + 1, piece_col - 2, attack_map);
+    row_and_col_update_attack_map( // F
+        pieces, board, piece, piece_row + 2, piece_col - 1, attack_map);
+    row_and_col_update_attack_map( // G
+        pieces, board, piece, piece_row + 2, piece_col + 1, attack_map);
+    row_and_col_update_attack_map( // H
+        pieces, board, piece, piece_row + 1, piece_col + 2, attack_map);
 }
 
 static void add_to_attack_map_bishop(
@@ -356,7 +423,8 @@ static void add_to_attack_map(
         }
         case mt_chess_type_knight:
         {
-            // TODO: Implement!
+            add_to_attack_map_knight(
+                pieces, board, piece, piece_row, piece_col, index, attack_map);
             return;
         }
         case mt_chess_type_bishop:

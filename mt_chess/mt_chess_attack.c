@@ -158,6 +158,9 @@ static void add_to_attack_map_pawn(
     //  -------
     // 2|!|p|!|
 
+    assert( // Last move must have been the defending player's.
+        latest_move == NULL || piece->color != latest_move->move.piece.color);
+
     // TODO: Implement!
 }
 

@@ -132,16 +132,16 @@ static void add_to_attack_map_king(
 }
 
 static void add_to_attack_map_pawn(
-    struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
     struct mt_chess_piece const * const piece,
     struct mt_chess_log_node const * const latest_move,
     int const piece_row,
     int const piece_col,
-    int const index,
     uint8_t * const attack_map)
 {
     assert(piece->type == mt_chess_type_pawn);
+
+    bool is_en_passant = false;
 
     //   0 1 2 
     // 0| | | |
@@ -150,10 +150,120 @@ static void add_to_attack_map_pawn(
     //  -------
     // 2|!|p|!|
 
-    assert( // Last move must have been the defending player's.
-        latest_move == NULL || piece->color != latest_move->move.piece.color);
+    do
+    {
+        if(latest_move == NULL)
+        {
+            break; // This is the first move. => No "en passant" possible.
+        }
 
-    // TODO: Implement!
+        // Last move must have been the attacking player's.
+        assert(piece->color == latest_move->move.piece.color);
+
+        if(latest_move->move.piece.type != mt_chess_type_pawn)
+        {
+            break; // Preceding move was NOT made by a pawn. => No "en passant".
+        }
+
+        int const en_passant_row =
+                (int)(latest_move->move.piece.color == mt_chess_color_white
+                    ? mt_chess_row_4 : mt_chess_row_5);
+
+        if(piece_row != en_passant_row)
+        {
+            break; // "En passant" not possible in attacking piece's row.
+        }
+
+        if((int)latest_move->move.to.row != en_passant_row)
+        {
+            break;
+        }
+        
+        int const en_passant_src_row =
+                (int)(latest_move->move.piece.color == mt_chess_color_white
+                    ? mt_chess_row_2 : mt_chess_row_7);
+
+        if((int)latest_move->move.from.row != en_passant_src_row)
+        {
+            break; // Was not the first step of the defender's pawn.
+        }
+
+        assert(0 <= piece_col && piece_col <= (int)mt_chess_col_h);
+        assert(latest_move->move.to/*from*/.col <= (uint8_t)mt_chess_col_h);
+
+        if((int)latest_move->move.to/*from*/.col != piece_col + 1
+            && (int)latest_move->move.to/*from*/.col != piece_col - 1)
+        {
+            break; // Defender's pawn is not on a neighboring file.
+        }
+
+        is_en_passant = true;
+    } while(false);
+
+    // For the non-en-passant/default pawn attack(-s).
+    int const row = piece_row + (int)(piece->color == mt_chess_color_white
+            ?  -1 : 1);
+
+    if(!(0 <= row && row <= (int)mt_chess_row_1))
+    {
+        return; // Nothing under attack by the pawn.
+    }
+
+    if(is_en_passant)
+    {
+        int const en_passant_row = piece_row;
+        int const en_passant_col = (int)latest_move->move.to/*from*/.col;
+        int const en_passant_index =
+            en_passant_row * ((int)mt_chess_row_1 + 1) + en_passant_col;
+
+        assert(board[en_passant_index] == latest_move->move.piece.id);
+
+        attack_map[en_passant_index] = 1;
+
+        // The square right above/below the en-passant-index square, which would
+        // normally be under attack, is considered as NOT under attack, here,
+        // because it must be empty (as the defender's pawn just moved through
+        // that square, from its initial position).
+
+        // On the other side, the "normal" pawn attack is valid:
+        int const col = piece_col + (en_passant_col < piece_col ? 1 : -1);
+        //
+        if(0 <= col && col <= (int)mt_chess_col_h)
+        {
+            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
+
+            // TODO: BUG: Only, if not attacker's piece on square!
+            attack_map[cur_index] = 1;
+        }
+
+        return;
+    }
+
+    // No "en passant":
+
+    {
+        int const col = piece_col - 1;
+
+        if(0 <= col && col <= (int)mt_chess_col_h)
+        {
+            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
+
+            // TODO: BUG: Only, if not attacker's piece on square!
+            attack_map[cur_index] = 1;
+        }
+    }
+
+    {
+        int const col = piece_col + 1;
+
+        if(0 <= col && col <= (int)mt_chess_col_h)
+        {
+            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
+
+            // TODO: BUG: Only, if not attacker's piece on square!
+            attack_map[cur_index] = 1;
+        }
+    }
 }
 
 static void add_to_attack_map_knight(
@@ -446,14 +556,7 @@ static void add_to_attack_map(
         case mt_chess_type_pawn:
         {
             add_to_attack_map_pawn(
-                pieces,
-                board,
-                piece,
-                latest_move,
-                piece_row,
-                piece_col,
-                index,
-                attack_map);
+                board, piece, latest_move, piece_row, piece_col, attack_map);
             return;
         }
         case mt_chess_type_knight:

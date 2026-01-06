@@ -878,6 +878,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_attack_map_as_str(
     mt_chess_attack_update(
         s_data->pieces,
         s_data->board,
+        mt_chess_log_node_get_latest(s_data->log),
         (enum mt_chess_color)(1 - (int)s_data->turn),
         attack_map);
 

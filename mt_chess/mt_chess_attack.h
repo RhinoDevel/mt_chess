@@ -12,6 +12,7 @@
 
 #include "mt_chess_piece.h"
 #include "mt_chess_color.h"
+#include "mt_chess_log_node.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,7 @@ extern "C" {
 void mt_chess_attack_update(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
+    struct mt_chess_log_node const * const latest_move,
     enum mt_chess_color const attacker,
     uint8_t * const attack_map);
 

@@ -19,6 +19,7 @@
 #include "mt_chess_row.h"
 #include "mt_chess_col.h"
 #include "mt_chess_type.h"
+#include "mt_chess_log_node.h"
 
 // TODO: Maybe better implement this as macro for performance-improvement!
 //
@@ -66,6 +67,8 @@ static bool ray_update_attack_map(
     return true; // The ray is stopped by this square.
 }
 
+// TODO: Maybe better implement this as macro for performance-improvement!
+//
 /**
  * - It is expected that row and/or column given are invalid (out of bounds).
  */
@@ -136,6 +139,28 @@ static void add_to_attack_map_king(
     }
 }
 
+static void add_to_attack_map_pawn(
+    struct mt_chess_piece const * const pieces,
+    uint8_t const * const board,
+    struct mt_chess_piece const * const piece,
+    struct mt_chess_log_node const * const latest_move,
+    int const piece_row,
+    int const piece_col,
+    int const index,
+    uint8_t * const attack_map)
+{
+    assert(piece->type == mt_chess_type_pawn);
+
+    //   0 1 2 
+    // 0| | | |
+    //  -------
+    // 1|x| |x|
+    //  -------
+    // 2|!|p|!|
+
+    // TODO: Implement!
+}
+
 static void add_to_attack_map_knight(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -178,6 +203,9 @@ static void add_to_attack_map_knight(
         pieces, board, piece, piece_row + 1, piece_col + 2, attack_map);
 }
 
+/**
+ * - Also called by add_attack_map_queen(). 
+ */
 static void add_to_attack_map_bishop(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -279,6 +307,9 @@ static void add_to_attack_map_bishop(
     }
 }
 
+/**
+ * - Also called by add_attack_map_queen().
+ */
 static void add_to_attack_map_rook(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
@@ -397,6 +428,7 @@ static void add_to_attack_map(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
     struct mt_chess_piece const * const piece,
+    struct mt_chess_log_node const * const latest_move,
     int const piece_row,
     int const piece_col,
     int const index,
@@ -418,7 +450,15 @@ static void add_to_attack_map(
         }
         case mt_chess_type_pawn:
         {
-            // TODO: Implement!
+            add_to_attack_map_pawn(
+                pieces,
+                board,
+                piece,
+                latest_move,
+                piece_row,
+                piece_col,
+                index,
+                attack_map);
             return;
         }
         case mt_chess_type_knight:
@@ -457,11 +497,13 @@ static void add_to_attack_map(
 void mt_chess_attack_update(
     struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
+    struct mt_chess_log_node const * const latest_move,
     enum mt_chess_color const attacker,
     uint8_t * const attack_map)
 {
     assert(pieces != NULL);
     assert(board != NULL);
+    // latest_move may be NULL.
     assert(
         attacker == mt_chess_color_white || attacker == mt_chess_color_black);
     assert(attack_map != NULL);
@@ -504,7 +546,7 @@ void mt_chess_attack_update(
             // The piece belongs to the attacker.
 
             add_to_attack_map(
-                pieces, board, piece, row, col, index, attack_map);
+                pieces, board, piece, latest_move, row, col, index, attack_map);
         }
     }
 }

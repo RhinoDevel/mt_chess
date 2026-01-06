@@ -36,18 +36,10 @@ static bool ray_update_attack_map(
     uint8_t const cur_piece_id, // ID of piece at current square (0, if empty).
     uint8_t * const attack_map)
 {
-    if(attack_map[cur_index] != 0)
-    {
-        // Square is already marked as being attacked.
-        return false; // Ray can continue.
-    }
-
-    // Square is not yet marked as being under attack.
-
     if(cur_piece_id == 0)
     {
         // There is NO piece at current square.
-        attack_map[cur_index] = 1;
+        attack_map[cur_index] = 1; // (maybe already set, does not matter)
         return false; // The ray is NOT stopped by this (empty) square.
     }
 
@@ -59,7 +51,7 @@ static bool ray_update_attack_map(
     if(cur_piece->color != piece->color)
     {
         // Defending player's piece at current position.
-        attack_map[cur_index] = 1;
+        attack_map[cur_index] = 1; // (maybe already set, does not matter)
     }
     //
     // Otherwise: Attacker's piece at current position. <=> NOT attacked.

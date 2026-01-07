@@ -132,6 +132,7 @@ static void add_to_attack_map_king(
 }
 
 static void add_to_attack_map_pawn(
+    struct mt_chess_piece const * const pieces,
     uint8_t const * const board,
     struct mt_chess_piece const * const piece,
     struct mt_chess_log_node const * const latest_move,
@@ -157,17 +158,13 @@ static void add_to_attack_map_pawn(
             break; // This is the first move. => No "en passant" possible.
         }
 
-        // Last move must have been the attacking player's.
-        assert(piece->color == latest_move->move.piece.color);
-
         if(latest_move->move.piece.type != mt_chess_type_pawn)
         {
             break; // Preceding move was NOT made by a pawn. => No "en passant".
         }
 
-        int const en_passant_row =
-                (int)(latest_move->move.piece.color == mt_chess_color_white
-                    ? mt_chess_row_4 : mt_chess_row_5);
+        int const en_passant_row = (int)(piece->color == mt_chess_color_white
+                ? mt_chess_row_5 : mt_chess_row_4);
 
         if(piece_row != en_passant_row)
         {
@@ -180,8 +177,8 @@ static void add_to_attack_map_pawn(
         }
         
         int const en_passant_src_row =
-                (int)(latest_move->move.piece.color == mt_chess_color_white
-                    ? mt_chess_row_2 : mt_chess_row_7);
+                (int)(piece->color == mt_chess_color_white
+                    ? mt_chess_row_7 : mt_chess_row_2);
 
         if((int)latest_move->move.from.row != en_passant_src_row)
         {
@@ -202,7 +199,7 @@ static void add_to_attack_map_pawn(
 
     // For the non-en-passant/default pawn attack(-s).
     int const row = piece_row + (int)(piece->color == mt_chess_color_white
-            ?  -1 : 1);
+            ?  -1 : 1); // (from the top)
 
     if(!(0 <= row && row <= (int)mt_chess_row_1))
     {
@@ -226,44 +223,22 @@ static void add_to_attack_map_pawn(
         // that square, from its initial position).
 
         // On the other side, the "normal" pawn attack is valid:
-        int const col = piece_col + (en_passant_col < piece_col ? 1 : -1);
-        //
-        if(0 <= col && col <= (int)mt_chess_col_h)
-        {
-            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
-
-            // TODO: BUG: Only, if not attacker's piece on square!
-            attack_map[cur_index] = 1;
-        }
-
+        row_and_col_update_attack_map(
+            pieces,
+            board,
+            piece,
+            row,
+            piece_col + (en_passant_col < piece_col ? 1 : -1),
+            attack_map);
         return;
     }
 
     // No "en passant":
 
-    {
-        int const col = piece_col - 1;
-
-        if(0 <= col && col <= (int)mt_chess_col_h)
-        {
-            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
-
-            // TODO: BUG: Only, if not attacker's piece on square!
-            attack_map[cur_index] = 1;
-        }
-    }
-
-    {
-        int const col = piece_col + 1;
-
-        if(0 <= col && col <= (int)mt_chess_col_h)
-        {
-            int const cur_index = row * ((int)mt_chess_row_1 + 1) + col;
-
-            // TODO: BUG: Only, if not attacker's piece on square!
-            attack_map[cur_index] = 1;
-        }
-    }
+    row_and_col_update_attack_map(
+        pieces, board, piece, row, piece_col - 1, attack_map);
+    row_and_col_update_attack_map(
+        pieces, board, piece, row, piece_col + 1, attack_map);
 }
 
 static void add_to_attack_map_knight(
@@ -556,7 +531,13 @@ static void add_to_attack_map(
         case mt_chess_type_pawn:
         {
             add_to_attack_map_pawn(
-                board, piece, latest_move, piece_row, piece_col, attack_map);
+                pieces,
+                board,
+                piece,
+                latest_move,
+                piece_row,
+                piece_col,
+                attack_map);
             return;
         }
         case mt_chess_type_knight:

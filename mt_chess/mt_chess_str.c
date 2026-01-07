@@ -486,9 +486,14 @@ char* mt_chess_str_create_board(
 }
 
 char* mt_chess_str_create_attack_map(
-    uint8_t const * const attack_map, bool const unicode)
+    uint8_t const * const attack_map,
+    enum mt_chess_color const attacker,
+    bool const unicode)
 {
     assert(attack_map != NULL);
+    assert(
+        attacker == mt_chess_color_white
+            || attacker == mt_chess_color_black);
 
     // Kind of overdone to create temporary data object for this..
 
@@ -496,7 +501,10 @@ char* mt_chess_str_create_attack_map(
     assert(d != NULL);
 
     // TODO: Hard-coded:
-    uint8_t const attacked_piece_id = d->board[1]; // Black knight.
+    uint8_t const attacked_piece_id = d->board[
+        attacker == mt_chess_color_black
+            ? 1 // Black knight.
+            : 1 + 7 * 8];
 
     for(int i = 0; i < 8 * 8; ++i)
     {

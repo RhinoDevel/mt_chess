@@ -17,6 +17,10 @@
 
 #include "mt_chess.h"
 
+#ifndef NDEBUG
+    #include "mt_chess_color.h" // OK to use here..?
+#endif //NDEBUG
+
 #ifdef _WIN32
     #include <windows.h> // For SetConsoleOutputCP().
 #endif //_WIN32
@@ -41,11 +45,16 @@ static void print_board(void)
     //
 #ifndef NDEBUG
     {
-        char * const attack_map_str = mt_chess_create_attack_map_as_str(
-            true);
+        char* attack_map_str = NULL;
 
+        attack_map_str = mt_chess_create_attack_map_as_str(
+            mt_chess_color_white, true);
         printf("%s", attack_map_str);
+        mt_chess_free(attack_map_str);
 
+        attack_map_str = mt_chess_create_attack_map_as_str(
+            mt_chess_color_black, true);
+        printf("%s", attack_map_str);
         mt_chess_free(attack_map_str);
     }
 #endif //NDEBUG

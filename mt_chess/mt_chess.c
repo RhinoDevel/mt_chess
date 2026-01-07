@@ -866,7 +866,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_board_as_str(
 }
 
 MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_attack_map_as_str(
-    bool const unicode)
+    enum mt_chess_color const attacker, bool const unicode)
 {
     uint8_t attack_map[8 * 8];
 
@@ -879,10 +879,10 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_attack_map_as_str(
         s_data->pieces,
         s_data->board,
         mt_chess_log_node_get_latest(s_data->log),
-        (enum mt_chess_color)(1 - (int)s_data->turn),
+        attacker,
         attack_map);
 
-    return mt_chess_str_create_attack_map(attack_map, unicode);
+    return mt_chess_str_create_attack_map(attack_map, attacker, unicode);
 }
 
 MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(

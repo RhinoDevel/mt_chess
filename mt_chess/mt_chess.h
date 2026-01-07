@@ -65,7 +65,7 @@ MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_board_as_str(
  * - Returns NULL, if not initialized, yet.
  */
 MT_EXPORT_CHESS_API char* __stdcall mt_chess_create_attack_map_as_str(
-	bool const unicode);
+	enum mt_chess_color const attacker, bool const unicode);
 
 /**
  * - Caller does NOT take ownership of eventually set output message.

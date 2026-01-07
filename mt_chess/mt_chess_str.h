@@ -13,6 +13,7 @@
 #endif //__cplusplus
 
 #include "mt_chess_data.h"
+#include "mt_chess_attack.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,9 @@ char* mt_chess_str_create_board(
  * - Caller takes ownership of return value.
  */
 char* mt_chess_str_create_attack_map(
-	uint8_t const * const attack_map, bool const unicode);
+	uint8_t const * const attack_map,
+	enum mt_chess_color const attacker,
+	bool const unicode);
 
 #ifdef __cplusplus
 }

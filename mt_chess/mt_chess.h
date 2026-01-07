@@ -13,6 +13,11 @@
 //   https://rcc.fide.com/fide-laws-of-chess_fulltexthtml/
 //   or
 //   https://rcc.fide.com/2023-laws-of-chess/
+//
+// Notes:
+// - Currently (3b100c6506b2f0688d5b44656c0b7c397485a8d6), the attack map does
+//   NOT mark a square as under attack, if a piece of the attacker is on that
+//   square. Maybe in the future, this needs to change for some features?
 
 #ifndef MT_CHESS
 #define MT_CHESS

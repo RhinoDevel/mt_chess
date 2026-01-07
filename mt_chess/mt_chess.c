@@ -28,6 +28,9 @@
 
 static struct mt_chess_data * s_data = NULL;
 
+/**
+ * - Creates attack map from before the move, if castling attempt detected. 
+ */
 static bool is_move_allowed_king(
     struct mt_chess_pos const * const from,
     struct mt_chess_pos const * const to,
@@ -276,10 +279,37 @@ static bool is_move_allowed_king(
             }
         }
 
-        // TODO:
-        // - Is the king not attacked on the from-square?
-        // - Is the square the king crosses not attacked?
         // [- Not necessary to check, here: Is to-square not attacked?]
+        {
+            uint8_t attack_map[8 * 8];
+
+            mt_chess_attack_update(
+                s_data->pieces,
+                s_data->board,
+                mt_chess_log_node_get_latest(s_data->log),
+                (enum mt_chess_color)(1 - (int)piece_king->color),
+                attack_map);
+
+            // Is the king not attacked on the from-square?
+
+            if(attack_map[board_index_king] != 0)
+            {
+                *out_msg = "King is under attack on current square, castling not possible.";
+                return false;
+            }
+
+            // Is the square the king crosses not attacked?
+
+            int const king_cross_index =
+                    board_index_king
+                        + (board_index_king < board_index_rook ? 1 :  -1);
+
+            if(attack_map[board_index_king] != 0)
+            {
+                *out_msg = "The square to cross by the king is under attack, castling not possible.";
+                return false;
+            }
+        }
 
         assert(*out_msg == NULL);
         return true;
@@ -752,6 +782,8 @@ static bool is_move_allowed(
     {
         case mt_chess_type_king:
         {
+            // Creates attack map from before the move, if castling attempt
+            // detected.
             if(!is_move_allowed_king(from, to, out_msg))
             {
                 assert(*out_msg != NULL);
@@ -929,7 +961,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     
     struct mt_chess_piece const * const piece = s_data->pieces + piece_index;
     assert(piece->id == piece_id);
-    
+
     if(!is_move_allowed(piece, &from, &to, out_msg))
     {
         assert(*out_msg != NULL);

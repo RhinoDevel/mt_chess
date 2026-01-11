@@ -3,6 +3,9 @@
 
 // TODO: Some rules to implement:
 //
+// - (Pawn) promotion:
+//   - Split try_apply_move() into is_move_possible_return_if_promotion() or
+//     something like that and apply_move().
 // - Game over, if the same situation was repeated n (5? 3?) times.
 // - Game over after each player took n (50?) turns without any catched piece.
 // - Game over without check, but with a situation where the king cannot move,

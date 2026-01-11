@@ -17,7 +17,7 @@
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
 
-int mt_chess_piece_get_index(
+int mt_chess_piece_get_index_by_id(
         struct mt_chess_piece const * const pieces, uint8_t const id)
 {
     assert(pieces != NULL);
@@ -31,6 +31,31 @@ int mt_chess_piece_get_index(
         {
             return i;
         }
+    }
+    assert(false);
+    return -1; // Not found.
+}
+
+int mt_chess_piece_get_index_by_type_and_color(
+    struct mt_chess_piece const * const pieces,
+    enum mt_chess_type const type,
+    enum mt_chess_color const color)
+{
+    assert(pieces != NULL);
+    // Also assuming that array the pointer points to has 2 x 2 x 8 items.
+    // Assuming that type & color given are valid, but no problem here, if not.
+
+    for(int i = 0; i < 2 * 2 * 8; ++i)
+    {
+        if(pieces[i].color != color)
+        {
+            continue;
+        }
+        if(pieces[i].type != type)
+        {
+            continue;
+        }
+        return i;
     }
     assert(false);
     return -1; // Not found.

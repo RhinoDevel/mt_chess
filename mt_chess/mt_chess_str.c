@@ -151,8 +151,8 @@ static int str_unicode_add_rank(
 
         if(piece_id != 0)
         {
-            int const piece_index = mt_chess_piece_get_index(
-                data->pieces, piece_id);
+            int const piece_index = mt_chess_piece_get_index_by_id(
+                    data->pieces, piece_id);
 
             assert(0 <= piece_index && piece_index < 2 * 2 * 8);
 
@@ -390,7 +390,7 @@ static char* create_board_as_ascii(struct mt_chess_data const * const data)
                         
                         ret_val[col_offset] = ' ';
                         
-                        int const piece_index = mt_chess_piece_get_index(
+                        int const piece_index = mt_chess_piece_get_index_by_id(
                                 data->pieces, piece_id);
                         
                         assert(0 <= piece_index && piece_index < 2 * 2 * 8);

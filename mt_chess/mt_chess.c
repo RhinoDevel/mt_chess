@@ -105,7 +105,7 @@ static bool is_move_allowed_king(
 
         uint8_t const piece_id_king = s_data->board[board_index_king];
 
-        int const piece_index_king = mt_chess_piece_get_index(
+        int const piece_index_king = mt_chess_piece_get_index_by_id(
                 s_data->pieces, piece_id_king);
 
         struct mt_chess_piece const * const piece_king =
@@ -166,7 +166,7 @@ static bool is_move_allowed_king(
 
         // Get object of piece that resides at the rook castling square:
 
-        int const rook_piece_index = mt_chess_piece_get_index(
+        int const rook_piece_index = mt_chess_piece_get_index_by_id(
                 s_data->pieces, board_rook_piece_id);
         assert(0 < rook_piece_index);
 
@@ -279,9 +279,14 @@ static bool is_move_allowed_king(
             }
         }
 
+        // TODO: As a castling move does not influence, if the king-from-square
+        //       or the king-cross-square is under attack, these checks can also
+        //       be done AFTER the move is applied for testing in
+        //       calling function!
+        //
         // [- Not necessary to check, here: Is to-square not attacked?]
         {
-            uint8_t attack_map[8 * 8];
+            uint8_t attack_map[sizeof s_data->board];
 
             mt_chess_attack_update(
                 s_data->pieces,
@@ -304,7 +309,7 @@ static bool is_move_allowed_king(
                     board_index_king
                         + (board_index_king < board_index_rook ? 1 :  -1);
 
-            if(attack_map[board_index_king] != 0)
+            if(attack_map[king_cross_index] != 0)
             {
                 *out_msg = "The square to cross by the king is under attack, castling not possible.";
                 return false;
@@ -762,7 +767,7 @@ static bool is_move_allowed(
     {
         // There is a(-nother) piece on the destination square.
 
-        int const to_piece_index = mt_chess_piece_get_index(
+        int const to_piece_index = mt_chess_piece_get_index_by_id(
             s_data->pieces, to_piece_id);
 
         to_piece = s_data->pieces + to_piece_index;
@@ -847,6 +852,86 @@ static bool is_move_allowed(
     }
 
     // TODO: Check and return false, if king is under attack / in check after move (no matter, if this was already true before or would be caused by the suggested move)!
+
+    // Check and return false, if king is under attack / in check after move:
+    //
+    {
+        uint8_t board[sizeof s_data->board];
+        uint8_t attack_map[sizeof s_data->board];
+        struct mt_chess_move move;
+        struct mt_chess_log_node * log_node = NULL;
+        int board_index_king = -1;
+
+        // Copy board:
+
+        for(int i = 0; i < (int)(sizeof board); ++i)
+        {
+            board[i] = s_data->board[i];
+        }
+
+        // Prepare move to apply to board copy:
+
+        move.from = *from;
+        move.to = *to;
+        move.piece = *piece;
+
+        // Apply move to board copy:
+
+        mt_chess_move_apply(&move, board);
+
+        // Let attack map reflect the state of the board copy:
+
+        // Hard-coded: Assuming that we omit all but the last move is OK, here:
+        log_node = mt_chess_log_node_create();
+        log_node->last = NULL;
+        log_node->move = move;
+        log_node->next = NULL;
+
+        mt_chess_attack_update(
+            s_data->pieces,
+            board,
+            log_node,
+            (enum mt_chess_color)(1 - (int)piece->color),
+            attack_map);
+
+        mt_chess_log_node_free(log_node);
+        log_node = NULL;
+
+        if(piece->type == mt_chess_type_king)
+        {
+            board_index_king = to->row * ((int)mt_chess_col_h + 1) + to->col;
+        }
+        else
+        {
+            // TODO: ID of king for each color could be precalculated / hard-coded for performance!
+
+            int const king_piece_index =
+                    mt_chess_piece_get_index_by_type_and_color(
+                        s_data->pieces, mt_chess_type_king, piece->color);
+
+            assert(0 <= king_piece_index && king_piece_index < 2 * 2 * 8);
+
+            int const king_piece_id = s_data->pieces[king_piece_index].id;
+
+            for(int i = 0; i < (int)(sizeof board); ++i)
+            {
+                if(board[i] == king_piece_id)
+                {
+                    board_index_king = i;
+                    break;
+                }
+            }
+            assert(0 <= board_index_king);
+        }
+
+        // Would the king be under attack / in check after the move?
+
+        if(attack_map[board_index_king] != 0)
+        {
+            *out_msg = "The king would be under attack after that move.";
+            return false;
+        }
+    }
 
     assert(*out_msg == NULL);
     return true;
@@ -955,7 +1040,8 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
         return false;
     }
 
-    int const piece_index = mt_chess_piece_get_index(s_data->pieces, piece_id);
+    int const piece_index = mt_chess_piece_get_index_by_id(
+            s_data->pieces, piece_id);
     
     assert(0 <= piece_index);
     

@@ -45,7 +45,8 @@ static bool ray_update_attack_map(
 
     // There is some piece at current square.
 
-    int const cur_piece_index = mt_chess_piece_get_index(pieces, cur_piece_id);
+    int const cur_piece_index = mt_chess_piece_get_index_by_id(
+            pieces, cur_piece_id);
     struct mt_chess_piece const * const cur_piece = pieces + cur_piece_index;
 
     if(cur_piece->color != piece->color)
@@ -612,7 +613,8 @@ void mt_chess_attack_update(
 
             // There is a piece at the current square of the board.
 
-            int const piece_index = mt_chess_piece_get_index(pieces, piece_id);
+            int const piece_index = mt_chess_piece_get_index_by_id(
+                    pieces, piece_id);
 
             struct mt_chess_piece const * const piece = pieces + piece_index;
             

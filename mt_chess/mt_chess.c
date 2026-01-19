@@ -851,8 +851,6 @@ static bool is_move_allowed(
         }
     }
 
-    // TODO: Check and return false, if king is under attack / in check after move (no matter, if this was already true before or would be caused by the suggested move)!
-
     // Check and return false, if king is under attack / in check after move:
     //
     {

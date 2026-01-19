@@ -45,8 +45,7 @@ static bool ray_update_attack_map(
 
     // There is some piece at current square.
 
-    int const cur_piece_index = mt_chess_piece_get_index_by_id(
-            pieces, cur_piece_id);
+    int const cur_piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(cur_piece_id);
     struct mt_chess_piece const * const cur_piece = pieces + cur_piece_index;
 
     if(cur_piece->color != piece->color)
@@ -248,10 +247,8 @@ static void add_to_attack_map_knight(
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
-    int const index,
     uint8_t * const attack_map)
 {
-    assert(attack_map[index] == 0);
     assert(piece->type == mt_chess_type_knight);
 
     //   0 1 2 3 4
@@ -293,10 +290,8 @@ static void add_to_attack_map_bishop(
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
-    int const index,
     uint8_t * const attack_map)
 {
-    assert(attack_map[index] == 0);
     assert(piece->type == mt_chess_type_bishop
         || piece->type == mt_chess_type_queen); // <- Is reused.
 
@@ -397,10 +392,8 @@ static void add_to_attack_map_rook(
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
-    int const index,
     uint8_t * const attack_map)
 {
-    assert(attack_map[index] == 0);
     assert(piece->type == mt_chess_type_rook
         || piece->type == mt_chess_type_queen); // <- Is reused.
 
@@ -496,13 +489,12 @@ static void add_to_attack_map_queen(
     struct mt_chess_piece const * const piece,
     int const piece_row,
     int const piece_col,
-    int const index,
     uint8_t * const attack_map)
 {
     add_to_attack_map_bishop(
-        pieces, board, piece, piece_row, piece_col, index, attack_map);
+        pieces, board, piece, piece_row, piece_col, attack_map);
     add_to_attack_map_rook(
-        pieces, board, piece, piece_row, piece_col, index, attack_map);
+        pieces, board, piece, piece_row, piece_col, attack_map);
 }
 
 static void add_to_attack_map(
@@ -520,6 +512,7 @@ static void add_to_attack_map(
     assert(0 <= piece_col && piece_col <= (int)mt_chess_col_h);
     assert(0 <= index && index < 8 * 8);
     assert(attack_map != NULL);
+    assert(attack_map[index] == 0);
 
     switch(piece->type)
     {
@@ -544,25 +537,25 @@ static void add_to_attack_map(
         case mt_chess_type_knight:
         {
             add_to_attack_map_knight(
-                pieces, board, piece, piece_row, piece_col, index, attack_map);
+                pieces, board, piece, piece_row, piece_col, attack_map);
             return;
         }
         case mt_chess_type_bishop:
         {
             add_to_attack_map_bishop(
-                pieces, board, piece, piece_row, piece_col, index, attack_map);
+                pieces, board, piece, piece_row, piece_col, attack_map);
             return;
         }
         case mt_chess_type_rook:
         {
             add_to_attack_map_rook(
-                pieces, board, piece, piece_row, piece_col, index, attack_map);
+                pieces, board, piece, piece_row, piece_col, attack_map);
             return;
         }
         case mt_chess_type_queen:
         {
             add_to_attack_map_queen(
-                pieces, board, piece, piece_row, piece_col, index, attack_map);
+                pieces, board, piece, piece_row, piece_col, attack_map);
             return;
         }
 
@@ -613,8 +606,7 @@ void mt_chess_attack_update(
 
             // There is a piece at the current square of the board.
 
-            int const piece_index = mt_chess_piece_get_index_by_id(
-                    pieces, piece_id);
+            int const piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
 
             struct mt_chess_piece const * const piece = pieces + piece_index;
             

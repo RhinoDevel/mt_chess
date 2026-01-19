@@ -17,25 +17,6 @@
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
 
-int mt_chess_piece_get_index_by_id(
-        struct mt_chess_piece const * const pieces, uint8_t const id)
-{
-    assert(pieces != NULL);
-    // Also assuming that array the pointer points to has 2 x 2 x 8 items.
-    
-    assert(1 <= id && id <= 32); // Although no problem, here.
-    
-    for(int i = 0; i < 2 * 2 * 8; ++i)
-    {
-        if(pieces[i].id == id)
-        {
-            return i;
-        }
-    }
-    assert(false);
-    return -1; // Not found.
-}
-
 int mt_chess_piece_get_index_by_type_and_color(
     struct mt_chess_piece const * const pieces,
     enum mt_chess_type const type,
@@ -75,7 +56,7 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         pieces[i].color = (enum mt_chess_color)color;
         pieces[i].type = mt_chess_type_king;
         // Don't let the IDs start with 0, 0 means empty cell (elsewhere).
-        pieces[i].id = i + 1;
+        pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
 
         ++i;
         
@@ -83,7 +64,7 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_pawn;
-            pieces[i].id = i + 1;
+            pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
             ++i;
         }
         
@@ -91,7 +72,7 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_knight;
-            pieces[i].id = i + 1;
+            pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
             ++i;
         }
         
@@ -99,7 +80,7 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_bishop;
-            pieces[i].id = i + 1;
+            pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
             ++i;
         }
         
@@ -107,13 +88,13 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_rook;
-            pieces[i].id = i + 1;
+            pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
             ++i;
         }
         
         pieces[i].color = (enum mt_chess_color)color;
         pieces[i].type = mt_chess_type_queen;
-        pieces[i].id = i + 1;
+        pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
         ++i;
     }
     assert(i == 2 * 2 * 8); // 32, for valid indices from 0 to 31.

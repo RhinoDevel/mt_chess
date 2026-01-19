@@ -105,8 +105,8 @@ static bool is_move_allowed_king(
 
         uint8_t const piece_id_king = s_data->board[board_index_king];
 
-        int const piece_index_king = mt_chess_piece_get_index_by_id(
-                s_data->pieces, piece_id_king);
+        int const piece_index_king =
+                MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id_king);
 
         struct mt_chess_piece const * const piece_king =
             &s_data->pieces[piece_index_king];
@@ -166,8 +166,8 @@ static bool is_move_allowed_king(
 
         // Get object of piece that resides at the rook castling square:
 
-        int const rook_piece_index = mt_chess_piece_get_index_by_id(
-                s_data->pieces, board_rook_piece_id);
+        int const rook_piece_index =
+                MT_CHESS_PIECE_GET_INDEX_BY_ID(board_rook_piece_id);
         assert(0 < rook_piece_index);
 
         struct mt_chess_piece const * const rook_piece =
@@ -407,10 +407,8 @@ static bool is_move_allowed_bishop(
     assert(0 <= first_col && first_col <= 7);
     assert(0 <= first_row && first_row <= 7);
 
-    int const last_col = first_col + col_add * (horiz_dist - 2);
     int const last_row = first_row + row_add * (vert_dist - 2);
 
-    assert(0 <= last_col && last_col <= 7);
     assert(0 <= last_row && last_row <= 7);
 
     col = first_col;
@@ -429,7 +427,6 @@ static bool is_move_allowed_bishop(
 
         if(row == last_row)
         {
-            assert(col == last_col);
             break; // Done
         }
 
@@ -767,8 +764,7 @@ static bool is_move_allowed(
     {
         // There is a(-nother) piece on the destination square.
 
-        int const to_piece_index = mt_chess_piece_get_index_by_id(
-            s_data->pieces, to_piece_id);
+        int const to_piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(to_piece_id);
 
         to_piece = s_data->pieces + to_piece_index;
         if(to_piece->color == s_data->turn)
@@ -1038,8 +1034,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
         return false;
     }
 
-    int const piece_index = mt_chess_piece_get_index_by_id(
-            s_data->pieces, piece_id);
+    int const piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
     
     assert(0 <= piece_index);
     

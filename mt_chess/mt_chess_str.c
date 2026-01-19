@@ -151,8 +151,7 @@ static int str_unicode_add_rank(
 
         if(piece_id != 0)
         {
-            int const piece_index = mt_chess_piece_get_index_by_id(
-                    data->pieces, piece_id);
+            int const piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
 
             assert(0 <= piece_index && piece_index < 2 * 2 * 8);
 
@@ -211,7 +210,11 @@ static char* create_board_as_unicode(struct mt_chess_data const * const data)
             + 1; // Trailing zero-terminator.
     char * const ret_val = (char*)malloc((size_t)max_chars * sizeof *ret_val);
 
-    assert(ret_val != NULL);
+    if(ret_val == NULL)
+    {
+        assert(false);
+        return NULL/*ret_val*/;
+    }
 
     // Ranks (rows of the actual board):
     for(int rank = 8; 1 <= rank; --rank)
@@ -270,7 +273,11 @@ static char* create_board_as_ascii(struct mt_chess_data const * const data)
     char * const ret_val = (char*)malloc(
         MT_BOARD_AS_STR_ASCII_CHARS * sizeof *ret_val);
     
-    assert(ret_val != NULL);
+    if(ret_val == NULL)
+    {
+        assert(false);
+        return NULL/*ret_val*/;
+    }
     
     for(int row = 0; row < MT_BOARD_AS_STR_ASCII_ROWS; ++row)
     {
@@ -390,8 +397,8 @@ static char* create_board_as_ascii(struct mt_chess_data const * const data)
                         
                         ret_val[col_offset] = ' ';
                         
-                        int const piece_index = mt_chess_piece_get_index_by_id(
-                                data->pieces, piece_id);
+                        int const piece_index =
+                                MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
                         
                         assert(0 <= piece_index && piece_index < 2 * 2 * 8);
                         

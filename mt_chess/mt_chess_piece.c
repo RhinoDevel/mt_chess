@@ -67,7 +67,6 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
     // Also assuming that array the pointer points to has 2 x 2 x 8 items.
     
     int i = 0; // Per piece.
-    uint8_t id = 1; // Don't start with 0, 0 means empty cell (elsewhere).
     
     assert((int)mt_chess_color_white == 0);
     assert((int)mt_chess_color_black == 1);
@@ -75,56 +74,49 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
     {
         pieces[i].color = (enum mt_chess_color)color;
         pieces[i].type = mt_chess_type_king;
-        pieces[i].id = id;
+        // Don't let the IDs start with 0, 0 means empty cell (elsewhere).
+        pieces[i].id = i + 1;
+
         ++i;
-        ++id;
         
         for(int c = 0; c < 8; ++c)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_pawn;
-            pieces[i].id = id;
+            pieces[i].id = i + 1;
             ++i;
-            ++id;
         }
         
         for(int c = 0; c < 2; ++c)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_knight;
-            pieces[i].id = id;
+            pieces[i].id = i + 1;
             ++i;
-            ++id;
         }
         
         for(int c = 0; c < 2; ++c)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_bishop;
-            pieces[i].id = id;
+            pieces[i].id = i + 1;
             ++i;
-            ++id;
         }
         
         for(int c = 0; c < 2; ++c)
         {
             pieces[i].color = (enum mt_chess_color)color;
             pieces[i].type = mt_chess_type_rook;
-            pieces[i].id = id;
+            pieces[i].id = i + 1;
             ++i;
-            ++id;
         }
         
         pieces[i].color = (enum mt_chess_color)color;
         pieces[i].type = mt_chess_type_queen;
-        pieces[i].id = id;
+        pieces[i].id = i + 1;
         ++i;
-        ++id;
     }
     assert(i == 2 * 2 * 8); // 32, for valid indices from 0 to 31.
-
-    // TODO: Just use i + 1 directly instead of extra ID?
-    assert(id == i + 1); // 33, for valid IDs from 1 to 32.
 }
 
 void mt_chess_piece_invalidate(struct mt_chess_piece * const piece)

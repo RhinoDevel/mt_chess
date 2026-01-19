@@ -6,12 +6,13 @@
 // - (Pawn) promotion:
 //   - Split try_apply_move() into is_move_possible_return_if_promotion() or
 //     something like that and apply_move().
-// - Game over, if the same situation was repeated n (5? 3?) times.
-// - Game over after each player took n (50?) turns without any catched piece.
+// - Game over, if the same situation was repeated 3 times.
+// - Game over after each player took 50 moves without movement of a pawn and
+//   no catched piece.
 // - Game over without check, but with a situation where the king cannot move,
-//   because it is pinned.
+//   because it is pinned (stalemate).
 // - Game over, if one player has a king, only and the other just a king and
-//   at most two knights or two bishops.
+//   at most two knights or two bishops (dead position).
 // - See details, e.g. here:
 //   https://rcc.fide.com/fide-laws-of-chess_fulltexthtml/
 //   or

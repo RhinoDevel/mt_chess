@@ -168,7 +168,7 @@ static bool is_move_allowed_king(
 
         int const rook_piece_index =
                 MT_CHESS_PIECE_GET_INDEX_BY_ID(board_rook_piece_id);
-        assert(0 < rook_piece_index);
+        assert(0 <= rook_piece_index && rook_piece_index < 2 * 2 * 8);
 
         struct mt_chess_piece const * const rook_piece =
             s_data->pieces + rook_piece_index;
@@ -1037,7 +1037,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
 
     int const piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
     
-    assert(0 <= piece_index);
+    assert(0 <= piece_index && piece_index < 2 * 2 * 8);
     
     struct mt_chess_piece const * const piece = s_data->pieces + piece_index;
     assert(piece->id == piece_id);

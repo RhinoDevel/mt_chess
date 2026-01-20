@@ -152,7 +152,7 @@ static bool is_move_allowed_king(
 
         // Is there a piece on the rook position necessary for castling?
 
-        if(board_rook_piece_id == 0)
+        if(board_rook_piece_id == MT_CHESS_PIECE_EMPTY)
         {
             if(rook_col == rook_col_short)
             {
@@ -235,7 +235,7 @@ static bool is_move_allowed_king(
 
             // Is the square of file F empty?
 
-            if(s_data->board[board_index_king + 1] != 0)
+            if(s_data->board[board_index_king + 1] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "Square of file F is not empty, kingside castling not possible.";
                 return false;
@@ -243,7 +243,7 @@ static bool is_move_allowed_king(
         
             // Is the square of file G empty?
 
-            if(s_data->board[board_index_king + 2] != 0)
+            if(s_data->board[board_index_king + 2] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "Square of file G is not empty, kingside castling not possible.";
                 return false;
@@ -256,7 +256,7 @@ static bool is_move_allowed_king(
 
             // Is the square of file B empty?
             
-            if(s_data->board[board_index_rook + 1] != 0)
+            if(s_data->board[board_index_rook + 1] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "Square of file B is not empty, queenside castling not possible.";
                 return false;
@@ -264,7 +264,7 @@ static bool is_move_allowed_king(
 
             // Is the square of file C empty?
 
-            if(s_data->board[board_index_rook + 2] != 0)
+            if(s_data->board[board_index_rook + 2] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "Square of file C is not empty, queenside castling not possible.";
                 return false;
@@ -272,7 +272,7 @@ static bool is_move_allowed_king(
 
             // Is the square of file D empty?
 
-            if(s_data->board[board_index_rook + 3] != 0)
+            if(s_data->board[board_index_rook + 3] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "Square of file D is not empty, queenside castling not possible.";
                 return false;
@@ -419,7 +419,7 @@ static bool is_move_allowed_bishop(
         int const board_index = row_offset + col;
         assert(0 <= board_index && board_index < 8 * 8);
 
-        if(s_data->board[board_index] != 0)
+        if(s_data->board[board_index] != MT_CHESS_PIECE_EMPTY)
         {
             *out_msg = "There is at least one piece in the bishop's path.";
             return false;
@@ -480,7 +480,7 @@ static bool is_move_allowed_rook(
 
         while(board_index <= last_board_index)
         {
-            if(s_data->board[board_index] != 0)
+            if(s_data->board[board_index] != MT_CHESS_PIECE_EMPTY)
             {
                 *out_msg = "There is at least one piece blocking the rook's path on its rank.";
                 return false;
@@ -523,7 +523,7 @@ static bool is_move_allowed_rook(
 
         assert(0 <= board_index && board_index < 8 * 8);
 
-        if(s_data->board[board_index] != 0)
+        if(s_data->board[board_index] != MT_CHESS_PIECE_EMPTY)
         {
             *out_msg = "There is at least one piece blocking the rook's path on its file.";
             return false;
@@ -571,7 +571,7 @@ static bool is_move_allowed_pawn(
     uint8_t const to_piece_id,
     char const * * const out_msg)
 {
-    assert(piece != NULL && piece->id != 0);
+    assert(piece != NULL && piece->id != MT_CHESS_PIECE_EMPTY);
     assert(from != NULL && !mt_chess_pos_is_invalid(from));
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
     assert(out_msg != NULL);
@@ -642,13 +642,13 @@ static bool is_move_allowed_pawn(
         int const middle_board_index = middle_row * (mt_chess_row_1 + 1)
                 + from/*to*/->col;
 
-        if(s_data->board[middle_board_index] != 0)
+        if(s_data->board[middle_board_index] != MT_CHESS_PIECE_EMPTY)
         {
             *out_msg = "A pawn cannot move two squares in straight forward direction, if there is another piece in-between.";
             return false;
         }
 
-        if(to_piece_id != 0)
+        if(to_piece_id != MT_CHESS_PIECE_EMPTY)
         {
             *out_msg = "A pawn cannot catch while moving two squares in straight forward direction.";
             return false;
@@ -669,7 +669,7 @@ static bool is_move_allowed_pawn(
     if(horiz_dist == 1)
     {
         // Pawn moves 1 square forward and 1 square to the side.
-        if(to_piece_id != 0)
+        if(to_piece_id != MT_CHESS_PIECE_EMPTY)
         {
             // There is an opponent's piece at the destination square.
             return true; // Seems to be an OK move.  
@@ -705,7 +705,8 @@ static bool is_move_allowed_pawn(
                     && latest->move.from.row == mt_chess_row_2
                     && latest->move.to.row == mt_chess_row_4)))
         {
-            assert(to_piece_id == 0); // There must never be a piece there.
+            // There must never be a piece there.
+            assert(to_piece_id == MT_CHESS_PIECE_EMPTY);
 
             // "En passant" detected.
             return true; // Seems to be an OK move. 
@@ -719,7 +720,7 @@ static bool is_move_allowed_pawn(
 
     assert(horiz_dist == 0);
 
-    if(to_piece_id != 0)
+    if(to_piece_id != MT_CHESS_PIECE_EMPTY)
     {
         *out_msg = "A pawn cannot catch while moving one square in straight forward direction.";
         return false;
@@ -733,7 +734,7 @@ static bool is_move_allowed(
     struct mt_chess_pos const * const to,
     char const * * const out_msg)
 {
-    assert(piece != NULL && piece->id != 0);
+    assert(piece != NULL && piece->id != MT_CHESS_PIECE_EMPTY);
     assert(from != NULL && !mt_chess_pos_is_invalid(from));
     assert(to != NULL && !mt_chess_pos_is_invalid(to));
     assert(out_msg != NULL);
@@ -760,7 +761,7 @@ static bool is_move_allowed(
 
     uint8_t const to_piece_id = s_data->board[to_board_index];
 
-    if(to_piece_id != 0)
+    if(to_piece_id != MT_CHESS_PIECE_EMPTY)
     {
         // There is a(-nother) piece on the destination square.
 
@@ -1028,7 +1029,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     assert(0 <= piece_board_index && piece_board_index < 8 * 8);
     uint8_t const piece_id = s_data->board[piece_board_index];
     
-    if(piece_id == 0)
+    if(piece_id == MT_CHESS_PIECE_EMPTY)
     {
         *out_msg = "There is no piece at from-position.";
         return false;

@@ -36,7 +36,7 @@ static bool ray_update_attack_map(
     uint8_t const cur_piece_id, // ID of piece at current square (0, if empty).
     uint8_t * const attack_map)
 {
-    if(cur_piece_id == 0)
+    if(cur_piece_id == MT_CHESS_PIECE_EMPTY)
     {
         // There is NO piece at current square.
         attack_map[cur_index] = 1; // (maybe already set, does not matter)
@@ -313,10 +313,10 @@ static void add_to_attack_map_bishop(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // *******************
@@ -334,10 +334,10 @@ static void add_to_attack_map_bishop(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // ******************
@@ -355,10 +355,10 @@ static void add_to_attack_map_bishop(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // *****************
@@ -376,10 +376,10 @@ static void add_to_attack_map_bishop(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 }
 
@@ -414,10 +414,10 @@ static void add_to_attack_map_rook(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // *************
@@ -434,10 +434,10 @@ static void add_to_attack_map_rook(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // ***
@@ -457,10 +457,10 @@ static void add_to_attack_map_rook(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 
     // **************
@@ -476,10 +476,10 @@ static void add_to_attack_map_rook(
         if(ray_update_attack_map(
             pieces, piece, cur_index, cur_piece_id, attack_map))
         {
-            assert(cur_piece_id != 0);
+            assert(cur_piece_id != MT_CHESS_PIECE_EMPTY);
             break; // Ray is stopped by current square.
         }
-        assert(cur_piece_id == 0);
+        assert(cur_piece_id == MT_CHESS_PIECE_EMPTY);
     }
 }
 
@@ -599,7 +599,7 @@ void mt_chess_attack_update(
             int const index = row_offset + col; // For board & attack map.
             uint8_t const piece_id = board[index];
 
-            if(piece_id == 0)
+            if(piece_id == MT_CHESS_PIECE_EMPTY)
             {
                 continue; // Current square is empty. => Does not attack anyone.
             }

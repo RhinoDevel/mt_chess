@@ -37,7 +37,7 @@ static uint8_t get_piece_id(
     assert(pieces != NULL);
     // Also assuming that array the pointer points to has 2 x 2 x 8 items.
     
-    uint8_t ret_val = 0;
+    uint8_t ret_val = MT_CHESS_PIECE_EMPTY;
     int skipped = 0;
     
     for(int i = 0; i < 2 * 2 * 8; ++i)
@@ -59,7 +59,7 @@ static uint8_t get_piece_id(
         break; // Found
     }
     
-    assert(ret_val != 0);
+    assert(ret_val != MT_CHESS_PIECE_EMPTY);
     return ret_val;
 }
 
@@ -150,7 +150,7 @@ static void clear_empty_center_of_board(uint8_t * const board)
         
         for(int col = (int)mt_chess_col_a; col <= (int)mt_chess_col_h; ++col)
         {
-            board[row_offset + col] = 0; // (IDs of pieces must never be zero)
+            board[row_offset + col] = MT_CHESS_PIECE_EMPTY;
         }
     }
 }

@@ -76,7 +76,7 @@ static int str_unicode_add_square(
     assert(
         square_color == mt_chess_color_white
             || square_color == mt_chess_color_black);
-    assert(piece == NULL || piece->id != 0);
+    assert(piece == NULL || piece->id != MT_CHESS_PIECE_EMPTY);
     assert(dest != NULL);
 
     int ret_val = 0;
@@ -149,7 +149,7 @@ static int str_unicode_add_rank(
         uint8_t const piece_id = data->board[board_index];
         struct mt_chess_piece const * piece = NULL;
 
-        if(piece_id != 0)
+        if(piece_id != MT_CHESS_PIECE_EMPTY)
         {
             int const piece_index = MT_CHESS_PIECE_GET_INDEX_BY_ID(piece_id);
 
@@ -366,7 +366,7 @@ static char* create_board_as_ascii(struct mt_chess_data const * const data)
                     
                     uint8_t const piece_id = data->board[board_index];
                     
-                    if(piece_id == 0)
+                    if(piece_id == MT_CHESS_PIECE_EMPTY)
                     {
                         // Empty.
                         
@@ -515,7 +515,8 @@ char* mt_chess_str_create_attack_map(
 
     for(int i = 0; i < 8 * 8; ++i)
     {
-        d->board[i] = attack_map[i] == 0 ? 0 : attacked_piece_id;
+        d->board[i] = attack_map[i] == 0
+            ? MT_CHESS_PIECE_EMPTY : attacked_piece_id;
     }
 
     char * const ret_val = mt_chess_str_create_board(d, unicode);

@@ -17,6 +17,7 @@
 #include "mt_chess_type.h"
 #include "mt_chess_col.h"
 #include "mt_chess_row.h"
+#include "mt_chess_piece.h"
 
 void mt_chess_move_invalidate(struct mt_chess_move * const move)
 {
@@ -54,7 +55,8 @@ void mt_chess_move_apply(
 
         if(abs(horiz_dist_val) == 2)
         {
-            assert(board[to_index] == 0); // (not updated, yet)
+            // (not updated, yet)
+            assert(board[to_index] == MT_CHESS_PIECE_EMPTY);
 
             // Initial values are for kingside castling:
             enum mt_chess_col rook_from_col = mt_chess_col_h;
@@ -76,12 +78,14 @@ void mt_chess_move_apply(
                 move->to/*from*/.row * ((int)mt_chess_col_h + 1) + rook_to_col;
             assert(0 <= rook_to_index && rook_to_index < 8 * 8);
 
-            assert(board[rook_from_index] != 0); // Kind of a parity test..
-            assert(board[rook_to_index] == 0);
+            // Kind of a parity test..
+            assert(board[rook_from_index] != MT_CHESS_PIECE_EMPTY);
+
+            assert(board[rook_to_index] == MT_CHESS_PIECE_EMPTY);
 
             // Move rook:
             board[rook_to_index] = board[rook_from_index];
-            board[rook_from_index] = 0;
+            board[rook_from_index] = MT_CHESS_PIECE_EMPTY;
             
         }
     }
@@ -91,8 +95,10 @@ void mt_chess_move_apply(
         {
             if(move->from.col != move->to.col)
             {
-                if(board[to_index] == 0) // (not updated, yet)
+                if(board[to_index] == MT_CHESS_PIECE_EMPTY)
                 {
+                    // (not updated, yet)
+
                     // Assuming "en passant".
 
                     uint8_t const opponent_pawn_row = move->from.row;
@@ -104,10 +110,10 @@ void mt_chess_move_apply(
                     assert(0 <= opponent_pawn_index && opponent_pawn_index < 8 * 8);
 
                     // Kind of a parity test..
-                    assert(board[opponent_pawn_index] != 0);
+                    assert(board[opponent_pawn_index] != MT_CHESS_PIECE_EMPTY);
 
                     // Remove opponent's pawn from board:
-                    board[opponent_pawn_index] = 0;
+                    board[opponent_pawn_index] = MT_CHESS_PIECE_EMPTY;
                 }
                 //
                 // Otherwise: Standard catch by a pawn.
@@ -116,6 +122,6 @@ void mt_chess_move_apply(
     }
 
     // Move the piece:
-    board[from_index] = 0;
+    board[from_index] = MT_CHESS_PIECE_EMPTY;
     board[to_index] = move->piece.id;
 }

@@ -107,5 +107,5 @@ void mt_chess_piece_invalidate(struct mt_chess_piece * const piece)
     piece->color = mt_chess_color_white; // Not invalid..
     piece->type = mt_chess_type_king; // Also not invalid..
     
-    piece->id = 0; // Signalizes invalid piece.
+    piece->id = MT_CHESS_PIECE_EMPTY; // Signalizes invalid piece.
 }

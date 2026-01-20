@@ -48,6 +48,7 @@ struct mt_chess_log_node * mt_chess_log_node_get_latest(
 /**
  * - Returns NULL, if NULL given.
  * - Returns NULL, if piece with given ID did not move, yet.
+ * - Assumes that given piece ID is valid.
  */
 struct mt_chess_log_node * mt_chess_log_node_get_latest_of_piece(
     struct mt_chess_log_node * const node, uint8_t const piece_id);

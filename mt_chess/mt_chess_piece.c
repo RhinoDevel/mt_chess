@@ -55,7 +55,6 @@ void mt_chess_piece_init(struct mt_chess_piece * const pieces)
     {
         pieces[i].color = (enum mt_chess_color)color;
         pieces[i].type = mt_chess_type_king;
-        // Don't let the IDs start with 0, 0 means empty cell (elsewhere).
         pieces[i].id = MT_CHESS_PIECE_GET_ID_BY_INDEX(i);
 
         ++i;

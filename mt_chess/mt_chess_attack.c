@@ -33,7 +33,7 @@ static bool ray_update_attack_map(
     struct mt_chess_piece const * const pieces,
     struct mt_chess_piece const * const piece, // Attacking piece (ray's src.).
     int const cur_index, // Board & attack map index of current square in ray.
-    uint8_t const cur_piece_id, // ID of piece at current square (0, if empty).
+    uint8_t const cur_piece_id, // ID of piece at cur. square (MT_CHESS_PIECE_EMPTY, if empty).
     uint8_t * const attack_map)
 {
     if(cur_piece_id == MT_CHESS_PIECE_EMPTY)

@@ -28,7 +28,10 @@ struct mt_chess_piece // Not just an enum., e.g., because of pawn promotion.
 {
     enum mt_chess_color color;
     enum mt_chess_type type;
-    uint8_t id; // 0 for invalid/unset (0 also means empty cell on the board).
+
+    // MT_CHESS_PIECE_EMPTY for invalid/unset (MT_CHESS_PIECE_EMPTY also means
+    // empty cell on the board).
+    uint8_t id;
 };
 
 int mt_chess_piece_get_index_by_type_and_color(

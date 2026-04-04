@@ -26,3 +26,6 @@ $(TARGET): $(OBJ)
 clean:
 	rm -f $(OBJ) $(TARGET) 
 
+compdb:
+	make clean
+	bear -- make

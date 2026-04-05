@@ -67,7 +67,7 @@ struct mt_chess_log_node * mt_chess_log_node_get_latest(
 struct mt_chess_log_node * mt_chess_log_node_get_latest_of_piece(
     struct mt_chess_log_node * const node, uint8_t const piece_id)
 {
-    assert(0 <= piece_id && piece_id < 2 * 2 * 8);
+    assert(piece_id < 2 * 2 * 8);
 
     struct mt_chess_log_node * const latest =
         mt_chess_log_node_get_latest(node);

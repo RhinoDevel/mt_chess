@@ -16,7 +16,6 @@
 #include "mt_chess_move.h"
 #include "mt_chess_type.h"
 #include "mt_chess_col.h"
-#include "mt_chess_row.h"
 #include "mt_chess_piece.h"
 
 void mt_chess_move_invalidate(struct mt_chess_move * const move)
@@ -86,7 +85,6 @@ void mt_chess_move_apply(
             // Move rook:
             board[rook_to_index] = board[rook_from_index];
             board[rook_from_index] = MT_CHESS_PIECE_EMPTY;
-            
         }
     }
     else 

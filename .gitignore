@@ -2,3 +2,8 @@
 mt_chess/x64/**
 x64/**
 mt_chess/a.exe
+mt_chess/.cache/**
+mt_chess/compile_commands.json
+mt_chess/*.d
+mt_chess/*.o
+mt_chess/mt_chess

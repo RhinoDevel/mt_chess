@@ -1025,7 +1025,7 @@ MT_EXPORT_CHESS_API bool __stdcall mt_chess_try_move(
     }
     
     int const piece_board_index =
-            ((int)mt_chess_col_h + 1) * from.row + from.col;
+            MT_CHESS_PIECE_GET_BOARD_INDEX(from.row, from.col);
     assert(0 <= piece_board_index && piece_board_index < 8 * 8);
     uint8_t const piece_id = s_data->board[piece_board_index];
     

@@ -12,7 +12,6 @@
 
 #include "mt_chess_color.h"
 #include "mt_chess_type.h"
-#include "mt_chess_col.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +25,7 @@ extern "C" {
 #define MT_CHESS_PIECE_GET_INDEX_BY_ID(id) ((int)(id))
 
 #define MT_CHESS_PIECE_GET_BOARD_INDEX(r, c) \
-    (((int)mt_chess_col_h + 1) * r + c)
+    (((int)mt_chess_col_h + 1) * (r) + (c))
 
 struct mt_chess_piece // Not just an enum., e.g., because of pawn promotion.
 {
@@ -52,3 +51,4 @@ void mt_chess_piece_invalidate(struct mt_chess_piece * const piece);
 #endif //__cplusplus
 
 #endif //MT_CHESS_PIECE
+

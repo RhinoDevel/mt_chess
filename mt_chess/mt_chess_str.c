@@ -360,7 +360,7 @@ static char* create_board_as_ascii(struct mt_chess_data const * const data)
                     int const board_col = buf / 6;
                     int const board_row = row / 2;
                     int const board_index =
-                            board_row * ((int)mt_chess_col_h + 1) + board_col;
+                            MT_CHESS_PIECE_GET_BOARD_INDEX(board_row, board_col);
                             
                     assert(board_index < 8 * 8);
                     

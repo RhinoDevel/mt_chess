@@ -69,12 +69,11 @@ void mt_chess_move_apply(
             }
 
             int const rook_from_index =
-                move->from/*to*/.row * ((int)mt_chess_col_h + 1)
-                    + rook_from_col;
+                    MT_CHESS_PIECE_GET_BOARD_INDEX(move->from/*to*/.row, rook_from_col);
              assert(0 <= rook_from_index && rook_from_index < 8 * 8);
 
             int const rook_to_index =
-                move->to/*from*/.row * ((int)mt_chess_col_h + 1) + rook_to_col;
+                    MT_CHESS_PIECE_GET_BOARD_INDEX(move->to/*from*/.row, rook_to_col);
             assert(0 <= rook_to_index && rook_to_index < 8 * 8);
 
             // Kind of a parity test..
@@ -103,8 +102,7 @@ void mt_chess_move_apply(
                     uint8_t const opponent_pawn_col = move->to.col;
 
                     int const opponent_pawn_index =
-                        opponent_pawn_row * ((int)mt_chess_col_h + 1)
-                        + opponent_pawn_col;
+                            MT_CHESS_PIECE_GET_BOARD_INDEX(opponent_pawn_row, opponent_pawn_col);
                     assert(0 <= opponent_pawn_index && opponent_pawn_index < 8 * 8);
 
                     // Kind of a parity test..

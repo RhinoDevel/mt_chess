@@ -100,7 +100,7 @@ static bool is_move_allowed_king(
         // Get king's piece object:
 
         int const board_index_king =
-                from->row * ((int)mt_chess_col_h + 1) + from->col;
+                MT_CHESS_PIECE_GET_BOARD_INDEX(from->row, from->col);
         assert(0 <= board_index_king && board_index_king < 8 * 8);
 
         uint8_t const piece_id_king = s_data->board[board_index_king];
@@ -756,7 +756,8 @@ static bool is_move_allowed(
         return false;
     }
 
-    int const to_board_index = ((int)mt_chess_col_h + 1) * to->row + to->col;
+    int const to_board_index =
+            MT_CHESS_PIECE_GET_BOARD_INDEX(to->row, to->col);
     assert(0 <= to_board_index && to_board_index < 8 * 8);
 
     uint8_t const to_piece_id = s_data->board[to_board_index];
@@ -894,7 +895,8 @@ static bool is_move_allowed(
 
         if(piece->type == mt_chess_type_king)
         {
-            board_index_king = to->row * ((int)mt_chess_col_h + 1) + to->col;
+            board_index_king =
+                MT_CHESS_PIECE_GET_BOARD_INDEX(to->row, to->col);
         }
         else
         {

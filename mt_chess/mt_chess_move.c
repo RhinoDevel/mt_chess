@@ -35,11 +35,11 @@ void mt_chess_move_apply(
     assert(board != NULL);
 
     int const from_index =
-            move->from.row * ((int)mt_chess_col_h + 1) + move->from.col;
+            MT_CHESS_PIECE_GET_BOARD_INDEX(move->from.row, move->from.col);
     assert(0 <= from_index && from_index < 8 * 8);
 
     int const to_index =
-            move->to.row * ((int)mt_chess_col_h + 1) + move->to.col;
+            MT_CHESS_PIECE_GET_BOARD_INDEX(move->to.row, move->to.col);
     assert(0 <= to_index && to_index < 8 * 8);
 
     assert(board[from_index] == move->piece.id);
